@@ -5,226 +5,186 @@
 <title>Keeper Tracker</title>
 
 <style>
-
-body{
-    font-family:Arial,sans-serif;
-    background:#f4f6f8;
-    margin:20px;
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 20px;
 }
 
-h1{
-    color:#1f2937;
+h1 {
+  color: #111827;
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    background:white;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
 }
 
-th{
-    background:#111827;
-    color:white;
-    padding:12px;
+th {
+  background: #111827;
+  color: white;
+  padding: 12px;
 }
 
-td{
-    padding:10px;
-    border-bottom:1px solid #ddd;
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
 }
 
-.eligible{
-    color:green;
-    font-weight:bold;
+.badge-ok {
+  color: green;
+  font-weight: bold;
 }
 
-.ineligible{
-    color:red;
-    font-weight:bold;
+.badge-no {
+  color: red;
+  font-weight: bold;
 }
 
+.badge-warn {
+  color: #b45309;
+  font-weight: bold;
+}
 </style>
 </head>
 
 <body>
 
+<div style="margin-bottom:20px;">
+  <a href="index.html">Rules</a> |
+  <a href="keepers.html">Keeper Tracker</a> |
+  <a href="standings.html">Standings</a>
+</div>
+        
 <h1>🏈 Keeper Tracker</h1>
 
 <table>
+  <thead>
+    <tr>
+      <th>Team</th>
+      <th>Player</th>
+      <th>Pos</th>
+      <th>Draft Round</th>
+      <th>Times Kept</th>
+      <th>Next Cost</th>
+      <th>Status</th>
+    </tr>
+  </thead>
 
-<thead>
-
-<tr>
-<th>Team</th>
-<th>Player</th>
-<th>Pos</th>
-<th>Draft Round</th>
-<th>Times Kept</th>
-<th>Next Cost</th>
-<th>Status</th>
-</tr>
-
-</thead>
-
-<tbody id="keepersBody"></tbody>
-
+  <tbody id="body"></tbody>
 </table>
 
 <script>
 
-const LEAGUE_ID =
-"1312583156339064832";
+const LEAGUE_ID = "1312583156339064832";
 
-async function loadKeepers(){
+async function load() {
 
-const [
-users,
-rosters,
-drafts,
-players,
-keeperHistory
+  try {
 
-] = await Promise.all([
+    const [users, rosters, drafts, players, history] =
+      await Promise.all([
+        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then(r => r.json()),
+        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then(r => r.json()),
+        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/drafts`).then(r => r.json()),
+        fetch(`https://api.sleeper.app/v1/players/nfl`).then(r => r.json()),
+        fetch("./keeper-history.json").then(r => r.json()).catch(() => ({}))
+      ]);
 
-fetch(
-`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`
-).then(r=>r.json()),
+    const teamMap = {};
+    users.forEach(u => {
+      teamMap[u.user_id] =
+        u.metadata?.team_name || u.display_name;
+    });
 
-fetch(
-`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`
-).then(r=>r.json()),
+    const draftId = drafts?.[0]?.draft_id;
 
-fetch(
-`https://api.sleeper.app/v1/league/${LEAGUE_ID}/drafts`
-).then(r=>r.json()),
+    let draftRounds = {};
 
-fetch(
-`https://api.sleeper.app/v1/players/nfl`
-).then(r=>r.json()),
+    if (draftId) {
+      const picks = await fetch(
+        `https://api.sleeper.app/v1/draft/${draftId}/picks`
+      ).then(r => r.json());
 
-fetch(
-"./keeper-history.json"
-).then(r=>r.json())
+      picks.forEach(p => {
+        draftRounds[p.player_id] = p.round;
+      });
+    }
 
-]);
+    const tbody = document.getElementById("body");
+    tbody.innerHTML = "";
 
-const draftId =
-drafts[0].draft_id;
+    rosters.forEach(roster => {
 
-const picks =
-await fetch(
-`https://api.sleeper.app/v1/draft/${draftId}/picks`
-).then(r=>r.json());
+      const teamName = teamMap[roster.owner_id] || "Unknown Team";
 
-const teamNames = {};
+      const playersList = roster.players || [];
 
-users.forEach(user=>{
+      if (playersList.length === 0) {
+        tbody.innerHTML += `
+          <tr>
+            <td>${teamName}</td>
+            <td colspan="6" class="badge-warn">No players found</td>
+          </tr>
+        `;
+        return;
+      }
 
-teamNames[user.user_id] =
-user.metadata?.team_name ||
-user.display_name;
+      playersList.forEach(pid => {
 
-});
+        const player = players?.[pid];
 
-const draftRounds = {};
+        const name = player?.full_name || pid;
+        const pos = player?.position || "-";
 
-picks.forEach(pick=>{
+        const round = draftRounds[pid];
 
-draftRounds[
-pick.player_id
-] = pick.round;
+        const kept = history?.[pid]?.times_kept ?? 0;
 
-});
+        const eligible = kept < 2;
 
-const tbody =
-document.getElementById(
-"keepersBody"
-);
+        let nextCost;
 
-tbody.innerHTML = "";
+        if (!round) {
+          nextCost = "FA/WW";
+        } else {
+          nextCost = Math.max(round - kept, 1);
+        }
 
-rosters.forEach(roster=>{
+        let status =
+          eligible ? "Eligible" : "Ineligible";
 
-const teamName =
-teamNames[
-roster.owner_id
-];
+        tbody.innerHTML += `
+          <tr>
+            <td>${teamName}</td>
+            <td>${name}</td>
+            <td>${pos}</td>
+            <td>${round || "FA"}</td>
+            <td>${kept}</td>
+            <td>${eligible ? nextCost : "-"}</td>
+            <td class="${eligible ? "badge-ok" : "badge-no"}">
+              ${status}
+            </td>
+          </tr>
+        `;
+      });
 
-(roster.players || [])
-.forEach(playerId=>{
+    });
 
-const player =
-players[playerId];
+  } catch (err) {
+    console.error(err);
 
-if(!player) return;
-
-const draftRound =
-draftRounds[playerId];
-
-const player = players?.[pid];
-
-const round = draftRounds?.[pid] ?? "FA";
-
-const kept = keeperHistory?.[pid]?.times_kept ?? 0;
-
-const eligible = kept < 2;
-
-const nextCost =
-  round === "FA"
-    ? "Last"
-    : round - kept;
-
-const timesKept =
-keeperHistory[playerId]
-?.times_kept || 0;
-
-const eligible =
-timesKept < 2;
-
-const nextCost =
-draftRound - timesKept;
-
-tbody.innerHTML += `
-
-<tr>
-
-<td>${teamName}</td>
-
-<td>${player.full_name}</td>
-
-<td>${player.position}</td>
-
-<td>${draftRound}</td>
-
-<td>${timesKept}</td>
-
-<td>
-${eligible ? nextCost : "-"}
-</td>
-
-<td class="${
-eligible
-? 'eligible'
-: 'ineligible'
-}">
-${
-eligible
-? 'Eligible'
-: 'Ineligible'
-}
-</td>
-
-</tr>
-
-`;
-
-});
-
-});
-
+    document.body.innerHTML = `
+      <h2 style="color:red;">
+        Keeper Tracker failed to load data
+      </h2>
+      <p>Check console for details.</p>
+    `;
+  }
 }
 
-loadKeepers();
+load();
 
 </script>
 
