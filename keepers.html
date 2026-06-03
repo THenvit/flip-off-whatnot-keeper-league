@@ -1,0 +1,162 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Keeper Tracker</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f6f8;
+    margin:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#1f2937;
+    color:white;
+    padding:12px;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+.eligible{
+    color:green;
+    font-weight:bold;
+}
+
+.ineligible{
+    color:red;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏈 Keeper Tracker</h1>
+
+<table id="keeperTable">
+<thead>
+<tr>
+<th>Team</th>
+<th>Player</th>
+<th>Pos</th>
+<th>Original Round</th>
+<th>Times Kept</th>
+<th>Next Cost</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+</table>
+
+<script>
+
+const LEAGUE_ID = "1312583156339064832";
+
+async function loadKeepers(){
+
+    const [
+        users,
+        rosters,
+        players,
+        origins,
+        history
+    ] = await Promise.all([
+
+        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`)
+            .then(r=>r.json()),
+
+        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`)
+            .then(r=>r.json()),
+
+        fetch(`https://api.sleeper.app/v1/players/nfl`)
+            .then(r=>r.json()),
+
+        fetch("./keeper-origins.json")
+            .then(r=>r.json()),
+
+        fetch("./keeper-history.json")
+            .then(r=>r.json())
+    ]);
+
+    const teamNames = {};
+
+    users.forEach(u=>{
+        teamNames[u.user_id] =
+            u.metadata?.team_name ||
+            u.display_name;
+    });
+
+    const tbody =
+        document.querySelector("#keeperTable tbody");
+
+    tbody.innerHTML = "";
+
+    rosters.forEach(roster=>{
+
+        const teamName =
+            teamNames[roster.owner_id];
+
+        (roster.players || []).forEach(playerId=>{
+
+            const player =
+                players[playerId];
+
+            if(!player) return;
+
+            const origin =
+                origins[playerId];
+
+            if(!origin) return;
+
+            const kept =
+                history[playerId]?.times_kept || 0;
+
+            let nextCost = origin.original_round - kept;
+
+            let eligible = kept < 2;
+
+            tbody.innerHTML += `
+            <tr>
+                <td>${teamName}</td>
+                <td>${player.full_name}</td>
+                <td>${player.position}</td>
+                <td>${origin.original_round}</td>
+                <td>${kept}</td>
+                <td>${eligible ? nextCost : "-"}</td>
+                <td class="${
+                    eligible
+                    ? "eligible"
+                    : "ineligible"
+                }">
+                    ${
+                    eligible
+                    ? "Eligible"
+                    : "Ineligible"
+                    }
+                </td>
+            </tr>
+            `;
+        });
+    });
+}
+
+loadKeepers();
+
+</script>
+
+</body>
+</html>
+```
