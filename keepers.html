@@ -161,7 +161,18 @@ if(!player) return;
 const draftRound =
 draftRounds[playerId];
 
-if(!draftRound) return;
+const player = players?.[pid];
+
+const round = draftRounds?.[pid] ?? "FA";
+
+const kept = keeperHistory?.[pid]?.times_kept ?? 0;
+
+const eligible = kept < 2;
+
+const nextCost =
+  round === "FA"
+    ? "Last"
+    : round - kept;
 
 const timesKept =
 keeperHistory[playerId]
