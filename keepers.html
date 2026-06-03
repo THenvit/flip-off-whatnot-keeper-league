@@ -6,13 +6,27 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #f4f6f8;
   margin: 20px;
 }
 
 h1 {
   color: #111827;
+}
+
+.controls {
+  margin-bottom: 15px;
+}
+
+button {
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+select {
+  padding: 6px;
 }
 
 table {
@@ -24,167 +38,182 @@ table {
 th {
   background: #111827;
   color: white;
-  padding: 12px;
+  padding: 10px;
 }
 
 td {
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid #ddd;
 }
 
-.badge-ok {
-  color: green;
-  font-weight: bold;
-}
-
-.badge-no {
-  color: red;
-  font-weight: bold;
-}
-
-.badge-warn {
-  color: #b45309;
-  font-weight: bold;
-}
+.good { color: green; font-weight: bold; }
+.bad { color: red; font-weight: bold; }
 </style>
 </head>
 
 <body>
 
-<div style="margin-bottom:20px;">
-  <a href="index.html">Rules</a> |
-  <a href="keepers.html">Keeper Tracker</a> |
-  <a href="standings.html">Standings</a>
-</div>
-        
 <h1>🏈 Keeper Tracker</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Team</th>
-      <th>Player</th>
-      <th>Pos</th>
-      <th>Draft Round</th>
-      <th>Times Kept</th>
-      <th>Next Cost</th>
-      <th>Status</th>
-    </tr>
-  </thead>
+<div class="controls">
 
-  <tbody id="body"></tbody>
+<button onclick="setView('all')">All Teams</button>
+<button onclick="setView('single')">Single Team</button>
+
+<select id="teamSelect" style="display:none;"></select>
+
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Player</th>
+<th>Pos</th>
+<th>Draft Round</th>
+<th>Times Kept</th>
+<th>Next Cost</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody id="body"></tbody>
 </table>
 
 <script>
 
 const LEAGUE_ID = "1312583156339064832";
 
-async function load() {
+let globalData = {};
+let currentView = "all";
 
-  try {
+function setView(v){
+  currentView = v;
+  document.getElementById("teamSelect").style.display =
+    v === "single" ? "inline-block" : "none";
 
-    const [users, rosters, drafts, players, history] =
-      await Promise.all([
-        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then(r => r.json()),
-        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then(r => r.json()),
-        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/drafts`).then(r => r.json()),
-        fetch(`https://api.sleeper.app/v1/players/nfl`).then(r => r.json()),
-        fetch("./keeper-history.json").then(r => r.json()).catch(() => ({}))
-      ]);
-
-    const teamMap = {};
-    users.forEach(u => {
-      teamMap[u.user_id] =
-        u.metadata?.team_name || u.display_name;
-    });
-
-    const draftId = drafts?.[0]?.draft_id;
-
-    let draftRounds = {};
-
-    if (draftId) {
-      const picks = await fetch(
-        `https://api.sleeper.app/v1/draft/${draftId}/picks`
-      ).then(r => r.json());
-
-      picks.forEach(p => {
-        draftRounds[p.player_id] = p.round;
-      });
-    }
-
-    const tbody = document.getElementById("body");
-    tbody.innerHTML = "";
-
-    rosters.forEach(roster => {
-
-      const teamName = teamMap[roster.owner_id] || "Unknown Team";
-
-      const playersList = roster.players || [];
-
-      if (playersList.length === 0) {
-        tbody.innerHTML += `
-          <tr>
-            <td>${teamName}</td>
-            <td colspan="6" class="badge-warn">No players found</td>
-          </tr>
-        `;
-        return;
-      }
-
-      playersList.forEach(pid => {
-
-        const player = players?.[pid];
-
-        const name = player?.full_name || pid;
-        const pos = player?.position || "-";
-
-        const round = draftRounds[pid];
-
-        const kept = history?.[pid]?.times_kept ?? 0;
-
-        const eligible = kept < 2;
-
-        let nextCost;
-
-        if (!round) {
-          nextCost = "FA/WW";
-        } else {
-          nextCost = Math.max(round - kept, 1);
-        }
-
-        let status =
-          eligible ? "Eligible" : "Ineligible";
-
-        tbody.innerHTML += `
-          <tr>
-            <td>${teamName}</td>
-            <td>${name}</td>
-            <td>${pos}</td>
-            <td>${round || "FA"}</td>
-            <td>${kept}</td>
-            <td>${eligible ? nextCost : "-"}</td>
-            <td class="${eligible ? "badge-ok" : "badge-no"}">
-              ${status}
-            </td>
-          </tr>
-        `;
-      });
-
-    });
-
-  } catch (err) {
-    console.error(err);
-
-    document.body.innerHTML = `
-      <h2 style="color:red;">
-        Keeper Tracker failed to load data
-      </h2>
-      <p>Check console for details.</p>
-    `;
-  }
+  render();
 }
 
-load();
+document.getElementById("teamSelect")
+  .addEventListener("change", render);
+
+async function loadData() {
+
+  const [users, rosters, drafts, players, history] =
+    await Promise.all([
+      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then(r=>r.json()),
+      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then(r=>r.json()),
+      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/drafts`).then(r=>r.json()),
+      fetch(`https://api.sleeper.app/v1/players/nfl`).then(r=>r.json()),
+      fetch("./keeper-history.json").then(r=>r.json()).catch(()=>({}))
+    ]);
+
+  const teamMap = {};
+  const teamOptions = [];
+
+  users.forEach(u=>{
+    teamMap[u.user_id] = u.metadata?.team_name || u.display_name;
+    teamOptions.push({id:u.user_id, name:teamMap[u.user_id]});
+  });
+
+  const draftRounds = {};
+
+  // 🔥 IMPORTANT: pull ALL drafts, not just latest
+  for (const d of drafts) {
+
+    const picks = await fetch(
+      `https://api.sleeper.app/v1/draft/${d.draft_id}/picks`
+    ).then(r=>r.json());
+
+    picks.forEach(p=>{
+      if(!draftRounds[p.player_id]){
+        draftRounds[p.player_id] = p.round;
+      }
+    });
+  }
+
+  globalData = {
+    users,
+    rosters,
+    players,
+    history,
+    teamMap,
+    draftRounds,
+    teamOptions
+  };
+
+  // populate dropdown
+  const sel = document.getElementById("teamSelect");
+  sel.innerHTML = "";
+
+  teamOptions.forEach(t=>{
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    sel.appendChild(opt);
+  });
+
+  render();
+}
+
+function render(){
+
+  const {
+    rosters,
+    players,
+    history,
+    teamMap,
+    draftRounds
+  } = globalData;
+
+  const tbody = document.getElementById("body");
+  tbody.innerHTML = "";
+
+  const selectedTeam =
+    document.getElementById("teamSelect").value;
+
+  rosters.forEach(r=>{
+
+    const teamName = teamMap[r.owner_id];
+
+    if(currentView === "single" && r.owner_id !== selectedTeam){
+      return;
+    }
+
+    (r.players || []).forEach(pid=>{
+
+      const p = players?.[pid];
+
+      const round = draftRounds?.[pid] ?? "FA";
+      const kept = history?.[pid]?.times_kept ?? 0;
+
+      const eligible = kept < 2;
+      const nextCost = round === "FA"
+        ? "FA"
+        : Math.max(round - kept, 1);
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${teamName}</td>
+          <td>${p?.full_name || pid}</td>
+          <td>${p?.position || "-"}</td>
+          <td>${round}</td>
+          <td>${kept}</td>
+          <td>${eligible ? nextCost : "-"}</td>
+          <td class="${eligible ? "good" : "bad"}">
+            ${eligible ? "Eligible" : "Ineligible"}
+          </td>
+        </tr>
+      `;
+
+    });
+
+  });
+
+}
+
+loadData();
 
 </script>
 
