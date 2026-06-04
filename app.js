@@ -1,5 +1,5 @@
 // CHANGE THIS VALUE: Put your real GitHub username inside the quotes
-const GITHUB_USERNAME = "THenvit"; 
+const GITHUB_USERNAME = "thenvit"; 
 
 // Absolute URL definitions that completely bypass broken path mathematics
 const REPO_NAME = "flip-off-whatnot-keeper-league";
