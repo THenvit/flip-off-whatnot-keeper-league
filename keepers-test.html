@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Keeper Dashboard</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f6f8;
+  margin: 20px;
+}
+
+h1 { color:#111827; }
+
+.controls { margin-bottom: 12px; }
+
+button {
+  padding: 8px 12px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+select { padding: 6px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th {
+  background: #111827;
+  color: white;
+  padding: 10px;
+}
+
+td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* striping */
+tr:nth-child(even) { background:#f9fafb; }
+
+/* keeper edits */
+.updated-row {
+  background: #fef3c7 !important;
+}
+
+.good { color: green; font-weight: bold; }
+.bad { color: red; font-weight: bold; }
+.rookie { color: #2563eb; font-weight: bold; }
+</style>
+</head>
+
+<body>
+  
+<div style="margin-bottom:20px;">
+    <a href="index.html">Home Page</a> |
+    <a href="keepers.html">Keeper Tracker</a> |
+    <a href="standings.html">Standings</a>
+    <a href="keepers-test.html">TestDebug</a>
+</div>
+    
+<h1>🏈 Keeper Dashboard</h1>
+
+<div class="controls">
+<button onclick="setView('all')">All Teams</button>
+<button onclick="setView('single')">Single Team</button>
+<button onclick="toggleAdmin()">Admin Mode</button>
+<button onclick="undo()">Undo</button>
+<button onclick="exportJSON()">Export JSON</button>
+
+<select id="teamSelect" style="display:none;"></select>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Player</th>
+<th>Pos</th>
+<th>Acquisition</th>
+<th>Times Kept</th>
+<th>Next Cost</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="body"></tbody>
+</table>
+
+<script>
+
+const LEAGUE_ID = "1312583156339064832";
+
+let admin = false;
+let view = "all";
+let undoStack = [];
+
+// keeper state (local until export)
+let keeperHistory = {};
+
+let state = {};
+let acquisitionMap = {};
+
+function setView(v){
+  view = v;
+  document.getElementById("teamSelect").style.display =
+    v === "single" ? "inline-block" : "none";
+  render();
+}
+
+function toggleAdmin(){
+  admin = !admin;
+  render();
+}
+
+function undo(){
+  const last = undoStack.pop();
+  if(!last) return;
+
+  keeperHistory[last.pid].times_kept = last.prev;
+  render();
+}
+
+function exportJSON(){
+  const blob = new Blob(
+    [JSON.stringify(keeperHistory, null, 2)],
+    {type:"application/json"}
+  );
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "keeper-history.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------- TRANSACTIONS ----------
+async function getTransactions(){
+
+  const all = [];
+
+  for(let w=1; w<=18; w++){
+    const res = await fetch(
+      `https://api.sleeper.app/v1/league/${LEAGUE_ID}/transactions/${w}`
+    ).then(r=>r.json());
+
+    if(Array.isArray(res)) all.push(...res);
+  }
+
+  return all;
+}
+
+function buildAcquisitionMap(transactions){
+
+  const map = {};
+
+  transactions.forEach(tx=>{
+
+    if(tx.status !== "complete") return;
+
+    const adds = tx.adds || {};
+
+    Object.keys(adds).forEach(pid=>{
+
+      const type = tx.type; // draft, waiver, trade, free_agent
+
+      if(!map[pid]){
+        map[pid] = { type, time: tx.created };
+      } else {
+        if(tx.created > map[pid].time){
+          map[pid] = { type, time: tx.created };
+        }
+      }
+
+    });
+
+  });
+
+  return map;
+}
+
+// ---------- LOAD ----------
+async function load(){
+
+  const [users, rosters, players, transactions] =
+    await Promise.all([
+      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then(r=>r.json()),
+      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then(r=>r.json()),
+      fetch(`https://api.sleeper.app/v1/players/nfl`).then(r=>r.json()),
+      getTransactions()
+    ]);
+
+  const teamMap = {};
+  const teamOptions = [];
+
+  users.forEach(u=>{
+    teamMap[u.user_id] =
+      u.metadata?.team_name || u.display_name;
+
+    teamOptions.push({
+      id: u.user_id,
+      name: teamMap[u.user_id]
+    });
+  });
+
+  acquisitionMap = buildAcquisitionMap(transactions);
+
+  state = { users, rosters, players, teamMap, teamOptions };
+
+  const sel = document.getElementById("teamSelect");
+  sel.innerHTML = "";
+
+  teamOptions.forEach(t=>{
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    sel.appendChild(opt);
+  });
+
+  render();
+}
+
+// ---------- ACTIONS ----------
+function addKeeper(pid){
+
+  if(!keeperHistory[pid]){
+    keeperHistory[pid] = { times_kept: 0 };
+  }
+
+  undoStack.push({
+    pid,
+    prev: keeperHistory[pid].times_kept
+  });
+
+  keeperHistory[pid].times_kept++;
+
+  const row = document.getElementById(`row-${pid}`);
+  if(row){
+    row.classList.add("updated-row");
+  }
+
+  render();
+}
+
+// ---------- RENDER ----------
+function render(){
+
+  const { rosters, players, teamMap } = state;
+
+  const tbody = document.getElementById("body");
+  tbody.innerHTML = "";
+
+  const selected = document.getElementById("teamSelect").value;
+
+  rosters.forEach(r=>{
+
+    const team = teamMap[r.owner_id];
+
+    if(view === "single" && r.owner_id !== selected) return;
+
+    (r.players || []).forEach(pid=>{
+
+      const p = players?.[pid];
+      if(!p) return;
+
+      const kept = keeperHistory?.[pid]?.times_kept ?? 0;
+
+      const eligible = kept < 2;
+
+      const acq = acquisitionMap?.[pid]?.type || "unknown";
+
+      let label =
+        acq === "draft" ? "Draft" :
+        acq === "waiver" ? "Waiver" :
+        acq === "trade" ? "Trade" :
+        acq === "free_agent" ? "FA" :
+        "Unknown";
+
+      const nextCost = Math.max(1, 1 + kept);
+
+      tbody.innerHTML += `
+        <tr id="row-${pid}">
+          <td>${team}</td>
+          <td>${p.full_name}</td>
+          <td>${p.position}</td>
+          <td>${label}</td>
+          <td>${kept}</td>
+          <td>${eligible ? nextCost : "-"}</td>
+          <td class="${eligible ? "good" : "bad"}">
+            ${eligible ? "Eligible" : "Ineligible"}
+          </td>
+          <td>
+            ${admin ? `<button onclick="addKeeper('${pid}')">+ Keeper</button>` : ""}
+          </td>
+        </tr>
+      `;
+
+    });
+
+  });
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>
