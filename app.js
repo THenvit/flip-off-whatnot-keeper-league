@@ -1,5 +1,11 @@
-// Clean, standard relative links that work perfectly on GitHub Pages
-const MASTER_PLAYERS_URL = "./public/players.json";
+// Automatically configures the path based on your exact URL structure
+const isGitHubPages = window.location.hostname.includes("github.io");
+const repoName = window.location.pathname.split('/')[1];
+
+// Set the base url cleanly
+const BASE_PATH = isGitHubPages ? `/${repoName}` : "";
+const MASTER_PLAYERS_URL = `${BASE_PATH}/public/players.json`;
+
 const WEEKLY_STATS_URL = "https://sleeper.app";
 const WEEKLY_PROJ_URL = "https://sleeper.app";
 
@@ -12,11 +18,12 @@ const sampleRosterIds = ["4034", "6794", "1466", "4029"];
 async function initializeDashboard() {
     const statusEl = document.getElementById("status");
     try {
-        statusEl.innerText = "Loading global player metrics from cache...";
+        statusEl.innerText = `Attempting to reach data path...`;
+        console.log("Fetching player cache from target URL:", MASTER_PLAYERS_URL);
         
-        // Fetch player master data using stable relative mapping
+        // Safely pull down master player cache
         const playersRes = await fetch(MASTER_PLAYERS_URL);
-        if (!playersRes.ok) throw new Error("Could not load local players.json cache");
+        if (!playersRes.ok) throw new Error(`HTTP Error ${playersRes.status}: Failed to reach file.`);
         masterPlayers = await playersRes.json();
 
         statusEl.innerText = "Connecting to Sleeper live feeds...";
@@ -35,7 +42,7 @@ async function initializeDashboard() {
 
     } catch (error) {
         console.error("Initialization error:", error);
-        statusEl.innerText = `Error: Cannot find your player cache file. Please go to your GitHub Actions tab and click 'Run workflow' to generate the file.`;
+        statusEl.innerText = `Error: Cannot load cache from ${MASTER_PLAYERS_URL}. Verify 'public/players.json' is committed to your main branch.`;
     }
 }
 
