@@ -53,6 +53,15 @@ td {
   background: #fff7ed;
   border: 1px solid #fdba74;
 }
+.highlight-row {
+  animation: highlightFlash 1.2s ease;
+}
+
+@keyframes highlightFlash {
+  0%   { background-color: #fef3c7; } /* yellow */
+  50%  { background-color: #fde68a; }
+  100% { background-color: transparent; }
+}
 </style>
 </head>
 
@@ -120,24 +129,50 @@ function addKeeper(playerId){
 
   keeperHistory[playerId].times_kept += 1;
 
+  const row = document.getElementById(`row-${playerId}`);
+
+  if (row) {
+    row.classList.remove("highlight-row"); // reset animation
+
+    // force reflow so animation can replay
+    void row.offsetWidth;
+
+    row.classList.add("highlight-row");
+
+    setTimeout(() => {
+      row.classList.remove("highlight-row");
+    }, 1200);
+  }
+
   render();
 }
 
 function exportJSON(){
 
-  const blob = new Blob(
-    [JSON.stringify(keeperHistory, null, 2)],
-    { type: "application/json" }
-  );
+  try {
 
-  const url = URL.createObjectURL(blob);
+    const dataStr = JSON.stringify(keeperHistory, null, 2);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "keeper-history.json";
-  a.click();
+    const blob = new Blob([dataStr], { type: "application/json" });
 
-  URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "keeper-history.json";
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+
+    alert("Keeper JSON exported successfully!");
+
+  } catch (err) {
+    console.error(err);
+    alert("Export failed — check console.");
+  }
 }
 
 let state = {};
@@ -216,7 +251,7 @@ function render(){
         : Math.max(round - kept, 1);
 
       tbody.innerHTML += `
-        <tr>
+        <tr id="row-${pid}">
           <td>${team}</td>
           <td>${p.full_name}</td>
           <td>${p.position}</td>
