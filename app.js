@@ -1,10 +1,5 @@
-// Automatically detects your GitHub URL pathing structure
-const REPO_NAME = window.location.pathname.split('/')[1] || "";
-const IS_GITHUB_PAGES = window.location.hostname.includes("github.io");
-const BASE_PATH = IS_GITHUB_PAGES ? `/${REPO_NAME}` : "";
-
-// Fixed URL targeting
-const MASTER_PLAYERS_URL = `${BASE_PATH}/public/players.json`;
+// Clean, standard relative links that work perfectly on GitHub Pages
+const MASTER_PLAYERS_URL = "./public/players.json";
 const WEEKLY_STATS_URL = "https://sleeper.app";
 const WEEKLY_PROJ_URL = "https://sleeper.app";
 
@@ -19,29 +14,28 @@ async function initializeDashboard() {
     try {
         statusEl.innerText = "Loading global player metrics from cache...";
         
-        // 1. Fetch player master data first (Critical dependency)
+        // Fetch player master data using stable relative mapping
         const playersRes = await fetch(MASTER_PLAYERS_URL);
         if (!playersRes.ok) throw new Error("Could not load local players.json cache");
         masterPlayers = await playersRes.json();
 
-        // 2. Fetch live endpoints individually so an off-season error won't crash the page
         statusEl.innerText = "Connecting to Sleeper live feeds...";
         try {
             const statsRes = await fetch(WEEKLY_STATS_URL);
             if (statsRes.ok) weeklyStats = await statsRes.json();
-        } catch(e) { console.warn("Live stats currently unavailable (Off-season)."); }
+        } catch(e) { console.warn("Live stats currently unavailable."); }
 
         try {
             const projRes = await fetch(WEEKLY_PROJ_URL);
             if (projRes.ok) weeklyProjections = await projRes.json();
-        } catch(e) { console.warn("Live projections currently unavailable (Off-season)."); }
+        } catch(e) { console.warn("Live projections currently unavailable."); }
         
         statusEl.innerText = "Data loaded successfully. Click a player to view embedded stats.";
         renderRoster(sampleRosterIds);
 
     } catch (error) {
         console.error("Initialization error:", error);
-        statusEl.innerText = `Error: Path issue or missing cache. Double-check that 'public/players.json' exists in your repo.`;
+        statusEl.innerText = `Error: Cannot find your player cache file. Please go to your GitHub Actions tab and click 'Run workflow' to generate the file.`;
     }
 }
 
