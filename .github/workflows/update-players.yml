@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        ref: main         # <-- Force it to check out your main branch (change to 'master' if your repo uses master)
 
     - name: Clean and Recreate Directory
       run: |
@@ -29,4 +31,4 @@ jobs:
         git config --global user.email '41898282+github-actions[bot]@://github.com'
         git add public/players.json
         git commit -m "Automated daily player data update" || echo "No changes to commit"
-        git push
+        git push origin HEAD:main # <-- Force it to push straight to your main code branch
