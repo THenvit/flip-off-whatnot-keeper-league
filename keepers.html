@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Keeper Tracker</title>
+<title>Keeper Admin Tracker</title>
 
 <style>
 body {
@@ -15,7 +15,7 @@ h1 {
   color: #111827;
 }
 
-.controls {
+.topbar {
   margin-bottom: 15px;
 }
 
@@ -23,10 +23,6 @@ button {
   padding: 8px 12px;
   margin-right: 8px;
   cursor: pointer;
-}
-
-select {
-  padding: 6px;
 }
 
 table {
@@ -49,6 +45,14 @@ td {
 .good { color: green; font-weight: bold; }
 .bad { color: red; font-weight: bold; }
 .rookie { color: #2563eb; font-weight: bold; }
+
+.admin {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+}
 </style>
 </head>
 
@@ -60,13 +64,18 @@ td {
     <a href="standings.html">Standings</a>
 </div>
     
-<h1>🏈 Keeper Tracker!</h1>
+<h1>🏈 Keeper Tracker (Admin)</h1>
 
-<div class="controls">
-<button onclick="setView('all')">All Teams</button>
-<button onclick="setView('single')">Single Team</button>
+<div class="topbar">
 
-<select id="teamSelect" style="display:none;"></select>
+<button onclick="toggleAdmin()">Admin Mode</button>
+<button onclick="exportJSON()">Export JSON</button>
+
+</div>
+
+<div id="adminPanel" class="admin">
+  <strong>Admin Mode Enabled</strong>
+  <p>You can now click "+ Add Keeper" next to players.</p>
 </div>
 
 <table>
@@ -79,7 +88,7 @@ td {
 <th>Times Kept</th>
 <th>Next Cost</th>
 <th>Status</th>
-<th>Rookie?</th>
+<th>Action</th>
 </tr>
 </thead>
 
@@ -90,49 +99,71 @@ td {
 
 const LEAGUE_ID = "1312583156339064832";
 
-let state = {};
-let view = "all";
+let adminMode = false;
 
-function setView(v){
-  view = v;
-  document.getElementById("teamSelect").style.display =
-    v === "single" ? "inline-block" : "none";
+// LOCAL keeper store (this replaces JSON until export)
+let keeperHistory = {};
+
+function toggleAdmin(){
+  adminMode = !adminMode;
+  document.getElementById("adminPanel").style.display =
+    adminMode ? "block" : "none";
+
   render();
 }
 
-document.getElementById("teamSelect")
-  .addEventListener("change", render);
+function addKeeper(playerId){
 
-async function load() {
+  if(!keeperHistory[playerId]){
+    keeperHistory[playerId] = { times_kept: 0 };
+  }
 
-  const [users, rosters, drafts, players, history] =
+  keeperHistory[playerId].times_kept += 1;
+
+  render();
+}
+
+function exportJSON(){
+
+  const blob = new Blob(
+    [JSON.stringify(keeperHistory, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "keeper-history.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+let state = {};
+
+async function load(){
+
+  const [users, rosters, drafts, players] =
     await Promise.all([
       fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then(r=>r.json()),
       fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then(r=>r.json()),
       fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/drafts`).then(r=>r.json()),
-      fetch(`https://api.sleeper.app/v1/players/nfl`).then(r=>r.json()),
-      fetch("./keeper-history.json").then(r=>r.json()).catch(()=>({}))
+      fetch(`https://api.sleeper.app/v1/players/nfl`).then(r=>r.json())
     ]);
 
   const teamMap = {};
-  const teamOptions = [];
 
   users.forEach(u=>{
     teamMap[u.user_id] =
       u.metadata?.team_name || u.display_name;
-
-    teamOptions.push({
-      id: u.user_id,
-      name: teamMap[u.user_id]
-    });
   });
 
-  // 🔥 LAST YEAR DRAFT ONLY
   const draftId = drafts?.[0]?.draft_id;
 
   let draftRounds = {};
 
-  if (draftId) {
+  if(draftId){
     const picks = await fetch(
       `https://api.sleeper.app/v1/draft/${draftId}/picks`
     ).then(r=>r.json());
@@ -146,33 +177,11 @@ async function load() {
     users,
     rosters,
     players,
-    history,
     teamMap,
-    teamOptions,
     draftRounds
   };
 
-  const sel = document.getElementById("teamSelect");
-  sel.innerHTML = "";
-
-  teamOptions.forEach(t=>{
-    const opt = document.createElement("option");
-    opt.value = t.id;
-    opt.textContent = t.name;
-    sel.appendChild(opt);
-  });
-
   render();
-}
-
-function isRookie(player){
-  // Sleeper field: years_exp (approximation)
-  if (!player) return false;
-
-  const exp = player.years_exp;
-
-  // rookies typically = 0 or undefined in API
-  return exp === 0 || exp === "0";
 }
 
 function render(){
@@ -180,7 +189,6 @@ function render(){
   const {
     rosters,
     players,
-    history,
     teamMap,
     draftRounds
   } = state;
@@ -188,55 +196,46 @@ function render(){
   const tbody = document.getElementById("body");
   tbody.innerHTML = "";
 
-  const selected = document.getElementById("teamSelect").value;
-
   rosters.forEach(r=>{
 
     const team = teamMap[r.owner_id];
 
-    if(view === "single" && r.owner_id !== selected){
-      return;
-    }
-
     (r.players || []).forEach(pid=>{
 
       const p = players?.[pid];
+      if(!p) return;
 
-      if (!p) return;
+      const round = draftRounds?.[pid] ?? "FA";
 
-      let round = draftRounds?.[pid];
-
-      const kept = history?.[pid]?.times_kept ?? 0;
-
-      const override = history?.[pid]?.override_round;
-
-      // 🔥 CORE RULE LOGIC
-      if (kept > 0 && override) {
-        round = override;
-      }
+      const kept = keeperHistory?.[pid]?.times_kept ?? 0;
 
       const eligible = kept < 2;
 
-      const nextCost = round
-        ? Math.max(round - kept, 1)
-        : "FA";
+      const nextCost = round === "FA"
+        ? "FA"
+        : Math.max(round - kept, 1);
 
       tbody.innerHTML += `
         <tr>
           <td>${team}</td>
           <td>${p.full_name}</td>
           <td>${p.position}</td>
-          <td>${round || "FA"}</td>
+          <td>${round}</td>
           <td>${kept}</td>
           <td>${eligible ? nextCost : "-"}</td>
           <td class="${eligible ? "good" : "bad"}">
             ${eligible ? "Eligible" : "Ineligible"}
           </td>
-          <td class="${isRookie(p) ? "rookie" : ""}">
-            ${isRookie(p) ? "YES" : ""}
+          <td>
+            ${
+              adminMode
+              ? `<button onclick="addKeeper('${pid}')">+ Keeper</button>`
+              : ""
+            }
           </td>
         </tr>
       `;
+
     });
 
   });
