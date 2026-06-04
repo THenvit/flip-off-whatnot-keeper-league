@@ -1,10 +1,9 @@
-// Automatically configures the path based on your exact URL structure
-const isGitHubPages = window.location.hostname.includes("github.io");
+// CHANGE THIS VALUE: Put your real GitHub username inside the quotes
+const GITHUB_USERNAME = "THenvit"; 
 
-// Fixes the array joining issue by pulling only the specific repository folder name
-const repoName = window.location.pathname.split('/')[1]; 
-const BASE_PATH = isGitHubPages ? `/${repoName}` : "";
-const MASTER_PLAYERS_URL = `${BASE_PATH}/public/players.json`;
+// Absolute URL definitions that completely bypass broken path mathematics
+const REPO_NAME = "flip-off-whatnot-keeper-league";
+const MASTER_PLAYERS_URL = `https://${GITHUB_USERNAME}.github.io/${REPO_NAME}/public/players.json`;
 
 const WEEKLY_STATS_URL = "https://sleeper.app";
 const WEEKLY_PROJ_URL = "https://sleeper.app";
@@ -19,11 +18,11 @@ async function initializeDashboard() {
     const statusEl = document.getElementById("status");
     try {
         statusEl.innerText = `Attempting to reach data path...`;
-        console.log("Fetching player cache from target URL:", MASTER_PLAYERS_URL);
+        console.log("Targeting absolute URL:", MASTER_PLAYERS_URL);
         
-        // Safely pull down master player cache
+        // Directly download the JSON cache file from your GitHub domain URL
         const playersRes = await fetch(MASTER_PLAYERS_URL);
-        if (!playersRes.ok) throw new Error(`HTTP Error ${playersRes.status}: Failed to reach file.`);
+        if (!playersRes.ok) throw new Error(`HTTP Error ${playersRes.status}: Cannot reach file.`);
         masterPlayers = await playersRes.json();
 
         statusEl.innerText = "Connecting to Sleeper live feeds...";
@@ -42,7 +41,7 @@ async function initializeDashboard() {
 
     } catch (error) {
         console.error("Initialization error:", error);
-        statusEl.innerText = `Error: Cannot load cache from ${MASTER_PLAYERS_URL}. Verify 'public/players.json' is committed to your main branch.`;
+        statusEl.innerText = `Error: Cannot load cache from ${MASTER_PLAYERS_URL}. Verify your GITHUB_USERNAME configuration is spelled exactly right in app.js.`;
     }
 }
 
