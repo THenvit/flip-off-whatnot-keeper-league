@@ -21,7 +21,7 @@ h1 {
 
 button {
   padding: 8px 12px;
-  margin-right: 10px;
+  margin-right: 8px;
   cursor: pointer;
 }
 
@@ -48,26 +48,25 @@ td {
 
 .good { color: green; font-weight: bold; }
 .bad { color: red; font-weight: bold; }
+.rookie { color: #2563eb; font-weight: bold; }
 </style>
 </head>
 
 <body>
-
-<div style="margin-bottom:20px;">
+    
+ <div style="margin-bottom:20px;">
     <a href="index.html">Home Page</a> |
     <a href="keepers.html">Keeper Tracker</a> |
     <a href="standings.html">Standings</a>
 </div>
-  
+    
 <h1>🏈 Keeper Tracker</h1>
 
 <div class="controls">
-
 <button onclick="setView('all')">All Teams</button>
 <button onclick="setView('single')">Single Team</button>
 
 <select id="teamSelect" style="display:none;"></select>
-
 </div>
 
 <table>
@@ -80,6 +79,7 @@ td {
 <th>Times Kept</th>
 <th>Next Cost</th>
 <th>Status</th>
+<th>Rookie?</th>
 </tr>
 </thead>
 
@@ -90,21 +90,20 @@ td {
 
 const LEAGUE_ID = "1312583156339064832";
 
-let globalData = {};
-let currentView = "all";
+let state = {};
+let view = "all";
 
 function setView(v){
-  currentView = v;
+  view = v;
   document.getElementById("teamSelect").style.display =
     v === "single" ? "inline-block" : "none";
-
   render();
 }
 
 document.getElementById("teamSelect")
   .addEventListener("change", render);
 
-async function loadData() {
+async function load() {
 
   const [users, rosters, drafts, players, history] =
     await Promise.all([
@@ -119,37 +118,40 @@ async function loadData() {
   const teamOptions = [];
 
   users.forEach(u=>{
-    teamMap[u.user_id] = u.metadata?.team_name || u.display_name;
-    teamOptions.push({id:u.user_id, name:teamMap[u.user_id]});
+    teamMap[u.user_id] =
+      u.metadata?.team_name || u.display_name;
+
+    teamOptions.push({
+      id: u.user_id,
+      name: teamMap[u.user_id]
+    });
   });
 
-  const draftRounds = {};
+  // 🔥 LAST YEAR DRAFT ONLY
+  const draftId = drafts?.[0]?.draft_id;
 
-  // 🔥 IMPORTANT: pull ALL drafts, not just latest
-  for (const d of drafts) {
+  let draftRounds = {};
 
+  if (draftId) {
     const picks = await fetch(
-      `https://api.sleeper.app/v1/draft/${d.draft_id}/picks`
+      `https://api.sleeper.app/v1/draft/${draftId}/picks`
     ).then(r=>r.json());
 
     picks.forEach(p=>{
-      if(!draftRounds[p.player_id]){
-        draftRounds[p.player_id] = p.round;
-      }
+      draftRounds[p.player_id] = p.round;
     });
   }
 
-  globalData = {
+  state = {
     users,
     rosters,
     players,
     history,
     teamMap,
-    draftRounds,
-    teamOptions
+    teamOptions,
+    draftRounds
   };
 
-  // populate dropdown
   const sel = document.getElementById("teamSelect");
   sel.innerHTML = "";
 
@@ -163,6 +165,16 @@ async function loadData() {
   render();
 }
 
+function isRookie(player){
+  // Sleeper field: years_exp (approximation)
+  if (!player) return false;
+
+  const exp = player.years_exp;
+
+  // rookies typically = 0 or undefined in API
+  return exp === 0 || exp === "0";
+}
+
 function render(){
 
   const {
@@ -171,19 +183,18 @@ function render(){
     history,
     teamMap,
     draftRounds
-  } = globalData;
+  } = state;
 
   const tbody = document.getElementById("body");
   tbody.innerHTML = "";
 
-  const selectedTeam =
-    document.getElementById("teamSelect").value;
+  const selected = document.getElementById("teamSelect").value;
 
   rosters.forEach(r=>{
 
-    const teamName = teamMap[r.owner_id];
+    const team = teamMap[r.owner_id];
 
-    if(currentView === "single" && r.owner_id !== selectedTeam){
+    if(view === "single" && r.owner_id !== selected){
       return;
     }
 
@@ -191,35 +202,48 @@ function render(){
 
       const p = players?.[pid];
 
-      const round = draftRounds?.[pid] ?? "FA";
+      if (!p) return;
+
+      let round = draftRounds?.[pid];
+
       const kept = history?.[pid]?.times_kept ?? 0;
 
+      const override = history?.[pid]?.override_round;
+
+      // 🔥 CORE RULE LOGIC
+      if (kept > 0 && override) {
+        round = override;
+      }
+
       const eligible = kept < 2;
-      const nextCost = round === "FA"
-        ? "FA"
-        : Math.max(round - kept, 1);
+
+      const nextCost = round
+        ? Math.max(round - kept, 1)
+        : "FA";
 
       tbody.innerHTML += `
         <tr>
-          <td>${teamName}</td>
-          <td>${p?.full_name || pid}</td>
-          <td>${p?.position || "-"}</td>
-          <td>${round}</td>
+          <td>${team}</td>
+          <td>${p.full_name}</td>
+          <td>${p.position}</td>
+          <td>${round || "FA"}</td>
           <td>${kept}</td>
           <td>${eligible ? nextCost : "-"}</td>
           <td class="${eligible ? "good" : "bad"}">
             ${eligible ? "Eligible" : "Ineligible"}
           </td>
+          <td class="${isRookie(p) ? "rookie" : ""}">
+            ${isRookie(p) ? "YES" : ""}
+          </td>
         </tr>
       `;
-
     });
 
   });
 
 }
 
-loadData();
+load();
 
 </script>
 
