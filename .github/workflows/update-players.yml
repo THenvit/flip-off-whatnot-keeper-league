@@ -1,23 +1,32 @@
 name: Daily Sleeper Cache
+
 on:
   schedule:
-    - cron: '0 3 * * *' # Runs daily at 3 AM UTC
-  workflow_dispatch: # Allows you to run it manually from GitHub
+    - cron: '0 3 * * *'  # Runs automatically every day at 3:00 AM UTC
+  workflow_dispatch:      # Adds a manual button in GitHub to run it anytime
+
+permissions:
+  contents: write        # Explicitly allows the script to save the file back to your repo
 
 jobs:
   update-cache:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repo
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Download Sleeper Data
-      run: curl -o public/players.json https://sleeper.app
-
-    - name: Commit and Push if changed
+    - name: Clean and Recreate Directory
       run: |
-        git config --global user.name 'Sleeper Bot'
-        git config --global user.email 'bot@sleeper.out'
+        if [ -d "public/players.json" ]; then rm -rf public/players.json; fi
+        mkdir -p public
+
+    - name: Download Sleeper Data
+      run: wget -O public/players.json https://sleeper.app
+
+    - name: Commit and Push to Repository
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email '41898282+github-actions[bot]@://github.com'
         git add public/players.json
-        git commit -m "Automated daily player update" || exit 0
+        git commit -m "Automated daily player data update" || echo "No changes to commit"
         git push
