@@ -1,8 +1,8 @@
 // Automatically configures the path based on your exact URL structure
 const isGitHubPages = window.location.hostname.includes("github.io");
-const repoName = window.location.pathname.split('/')[1];
 
-// Set the base url cleanly
+// Fixes the array joining issue by pulling only the specific repository folder name
+const repoName = window.location.pathname.split('/')[1]; 
 const BASE_PATH = isGitHubPages ? `/${repoName}` : "";
 const MASTER_PLAYERS_URL = `${BASE_PATH}/public/players.json`;
 
