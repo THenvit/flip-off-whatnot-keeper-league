@@ -1,0 +1,23 @@
+name: Daily Sleeper Cache
+on:
+  schedule:
+    - cron: '0 3 * * *' # Runs daily at 3 AM UTC
+  workflow_dispatch: # Allows you to run it manually from GitHub
+
+jobs:
+  update-cache:
+    runs-size: ubuntu-latest
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Download Sleeper Data
+      run: curl -o public/players.json https://sleeper.app
+
+    - name: Commit and Push if changed
+      run: |
+        git config --global user.name 'Sleeper Bot'
+        git config --global user.email 'bot@sleeper.out'
+        git add public/players.json
+        git commit -m "Automated daily player update" || exit 0
+        git push
