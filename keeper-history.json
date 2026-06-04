@@ -1,8 +1,9 @@
 {
-  "4034": {
-    "times_kept": 0
+  "1234": {
+    "times_kept": 1,
+    "override_round": 7
   },
-  "9753": {
-    "times_kept": 1
+  "5678": {
+    "times_kept": 0
   }
 }
