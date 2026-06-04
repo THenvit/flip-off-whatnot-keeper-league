@@ -1,14 +1,17 @@
-// Configuration variables
-const MASTER_PLAYERS_URL = "./public/players.json";
+// Automatically detects your GitHub URL pathing structure
+const REPO_NAME = window.location.pathname.split('/')[1] || "";
+const IS_GITHUB_PAGES = window.location.hostname.includes("github.io");
+const BASE_PATH = IS_GITHUB_PAGES ? `/${REPO_NAME}` : "";
+
+// Fixed URL targeting
+const MASTER_PLAYERS_URL = `${BASE_PATH}/public/players.json`;
 const WEEKLY_STATS_URL = "https://sleeper.app";
 const WEEKLY_PROJ_URL = "https://sleeper.app";
 
-// Global data stores
 let masterPlayers = {};
 let weeklyStats = {};
 let weeklyProjections = {};
 
-// Hardcoded sample roster matching standard Sleeper IDs (Mahomes, Jefferson, Kelce, McCaffrey)
 const sampleRosterIds = ["4034", "6794", "1466", "4029"];
 
 async function initializeDashboard() {
@@ -16,33 +19,39 @@ async function initializeDashboard() {
     try {
         statusEl.innerText = "Loading global player metrics from cache...";
         
-        // Fetch all dependencies in a single async cluster
-        const [playersRes, statsRes, projRes] = await Promise.all([
-            fetch(MASTER_PLAYERS_URL),
-            fetch(WEEKLY_STATS_URL),
-            fetch(WEEKLY_PROJ_URL)
-        ]);
-
+        // 1. Fetch player master data first (Critical dependency)
+        const playersRes = await fetch(MASTER_PLAYERS_URL);
+        if (!playersRes.ok) throw new Error("Could not load local players.json cache");
         masterPlayers = await playersRes.json();
-        weeklyStats = await statsRes.json();
-        weeklyProjections = await projRes.json();
+
+        // 2. Fetch live endpoints individually so an off-season error won't crash the page
+        statusEl.innerText = "Connecting to Sleeper live feeds...";
+        try {
+            const statsRes = await fetch(WEEKLY_STATS_URL);
+            if (statsRes.ok) weeklyStats = await statsRes.json();
+        } catch(e) { console.warn("Live stats currently unavailable (Off-season)."); }
+
+        try {
+            const projRes = await fetch(WEEKLY_PROJ_URL);
+            if (projRes.ok) weeklyProjections = await projRes.json();
+        } catch(e) { console.warn("Live projections currently unavailable (Off-season)."); }
         
         statusEl.innerText = "Data loaded successfully. Click a player to view embedded stats.";
         renderRoster(sampleRosterIds);
 
     } catch (error) {
         console.error("Initialization error:", error);
-        statusEl.innerText = "Error loading data. Run your GitHub Action manually to generate the player cache file.";
+        statusEl.innerText = `Error: Path issue or missing cache. Double-check that 'public/players.json' exists in your repo.`;
     }
 }
 
 function renderRoster(playerIds) {
     const container = document.getElementById("roster-container");
-    container.innerHTML = ""; // Clear existing
+    container.innerHTML = ""; 
 
     playerIds.forEach(id => {
         const player = masterPlayers[id];
-        if (!player) return; // Skip if ID is missing in database
+        if (!player) return; 
 
         const card = document.createElement("div");
         card.className = "player-card";
@@ -63,16 +72,13 @@ function openPlayerStats(playerId) {
     const stats = weeklyStats[playerId] || {};
     const projections = weeklyProjections[playerId] || {};
 
-    // Map content cleanly to popup elements
     document.getElementById("modal-name").innerText = `${player.first_name} ${player.last_name}`;
     document.getElementById("modal-pos").innerText = player.position || "N/A";
     document.getElementById("modal-team").innerText = player.team || "Free Agent";
     
-    // Fallback to 0 if data isn't generated for that target week yet
     document.getElementById("modal-proj").innerText = projections.pts_half_ppr ? projections.pts_half_ppr.toFixed(2) : "0.00";
     document.getElementById("modal-actual").innerText = stats.pts_half_ppr ? stats.pts_half_ppr.toFixed(2) : "0.00";
 
-    // Open modal backdrop and window
     document.getElementById("modal-overlay").classList.add("show");
     document.getElementById("stats-modal").classList.add("show");
 }
@@ -82,5 +88,4 @@ function closeModal() {
     document.getElementById("stats-modal").classList.remove("show");
 }
 
-// Fire application initialization
 initializeDashboard();
