@@ -1,7 +1,4 @@
-// CHANGE THIS VALUE: Put your real GitHub username inside the quotes
 const GITHUB_USERNAME = "thenvit"; 
-
-// Absolute URL definitions that completely bypass broken path mathematics
 const REPO_NAME = "flip-off-whatnot-keeper-league";
 const MASTER_PLAYERS_URL = `https://${GITHUB_USERNAME}.github.io/${REPO_NAME}/public/players.json`;
 
@@ -17,31 +14,36 @@ const sampleRosterIds = ["4034", "6794", "1466", "4029"];
 async function initializeDashboard() {
     const statusEl = document.getElementById("status");
     try {
-        statusEl.innerText = `Attempting to reach data path...`;
-        console.log("Targeting absolute URL:", MASTER_PLAYERS_URL);
+        statusEl.innerText = `Connecting to your database stream...`;
+        console.log("Requesting data from absolute path:", MASTER_PLAYERS_URL);
         
-        // Directly download the JSON cache file from your GitHub domain URL
-        const playersRes = await fetch(MASTER_PLAYERS_URL);
-        if (!playersRes.ok) throw new Error(`HTTP Error ${playersRes.status}: Cannot reach file.`);
+        // Added 'reload' cache flag to destroy old browser memory loop errors
+        const playersRes = await fetch(MASTER_PLAYERS_URL, { cache: "reload" });
+        
+        if (!playersRes.ok) {
+            throw new Error(`HTTP Error Status: ${playersRes.status}`);
+        }
+        
+        // Parse the text data safely into JSON memory
         masterPlayers = await playersRes.json();
 
         statusEl.innerText = "Connecting to Sleeper live feeds...";
         try {
             const statsRes = await fetch(WEEKLY_STATS_URL);
             if (statsRes.ok) weeklyStats = await statsRes.json();
-        } catch(e) { console.warn("Live stats currently unavailable."); }
+        } catch(e) { console.warn("Live stats currently offline (Off-season)."); }
 
         try {
             const projRes = await fetch(WEEKLY_PROJ_URL);
             if (projRes.ok) weeklyProjections = await projRes.json();
-        } catch(e) { console.warn("Live projections currently unavailable."); }
+        } catch(e) { console.warn("Live projections currently offline (Off-season)."); }
         
-        statusEl.innerText = "Data loaded successfully. Click a player to view embedded stats.";
+        statusEl.innerText = "Data loaded successfully! Click any player card below.";
         renderRoster(sampleRosterIds);
 
     } catch (error) {
-        console.error("Initialization error:", error);
-        statusEl.innerText = `Error: Cannot load cache from ${MASTER_PLAYERS_URL}. Verify your GITHUB_USERNAME configuration is spelled exactly right in app.js.`;
+        console.error("Detailed failure context:", error);
+        statusEl.innerText = `Error processing data. Check your browser console (F12) to see if security software or a browser extension is blocking the file download.`;
     }
 }
 
