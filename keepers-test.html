@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
+    <style>
     :root {
         --bg-color: #f4f6f9;
         --card-bg: #ffffff;
@@ -134,10 +134,9 @@
             <label for="teamFilter">Filter by Team</label>
             <select id="teamFilter" onchange="renderTable()">
                 <option value="all">All Teams</option>
-                <!-- Dynamically loaded from Sleeper Users -->
             </select>
         </div>
-        <div id="loadingStatus" style="font-weight: bold; color: #e67e22;">Loading data from Sleeper...</div>
+        <div id="loadingStatus" style="font-weight: bold; color: #e67e22;">Loading file metrics and Sleeper API...</div>
     </div>
 
     <!-- Data Table View -->
@@ -162,37 +161,34 @@
     </div>
 </div>
 <script>
-    // Config: Replace with your actual league ID
+    // Config: Input your actual dynamic league key string
     const LEAGUE_ID = "1312583156339064832"; 
-
-    // Draft rounds mapper since active rosters do not hold past draft values natively.
-    // Ensure all players with a draft record are mapped below; missing ones default to FA (14).
-    const draftHistoryMap = {
-        "2449": 7,  // Stefon Diggs
-        "4137": 3,  // James Conner
-        "4981": 5,  // Calvin Ridley
-        "5045": 10  // Courtland Sutton
-    };
 
     let globalProcessedPlayers = [];
     let userMap = {};
+    let draftHistoryMap = {}; 
 
-    // 1. Core Mathematical Rule Engine
+    // 1. Core Rule Engine
     function calculateKeeperCost(playerObj, keeperCount, sleeperId) {
-        const draftRound = draftHistoryMap[sleeperId] || null;
+        const historyRecord = draftHistoryMap[sleeperId];
+        const draftRound = (historyRecord && historyRecord.draft_round !== null) ? historyRecord.draft_round : null;
+        
+        // Inherit keeper count tracker from local file data
+        const localKeeperCount = (historyRecord !== undefined) ? historyRecord.keeper_count : keeperCount;
+
         const isFA = draftRound === null;
         const baseRound = isFA ? 14 : draftRound;
         
         let nextCost = "";
         let eligible = true;
 
-        if (keeperCount >= 2) {
+        if (localKeeperCount >= 2) {
             eligible = false;
             nextCost = "Max Kept";
-        } else if (keeperCount === 0) {
+        } else if (localKeeperCount === 0) {
             nextCost = `Rd ${baseRound}`;
             eligible = true;
-        } else if (keeperCount === 1) {
+        } else if (localKeeperCount === 1) {
             if (baseRound === 1) {
                 eligible = false;
                 nextCost = "Ineligible";
@@ -211,27 +207,28 @@
             nfl_team: playerObj.team || "FA",
             displayRound: isFA ? "FA (14)" : `Rd ${draftRound}`,
             nextCost: nextCost,
-            eligible: eligible
+            eligible: eligible,
+            finalKeeperCount: localKeeperCount
         };
     }
 
-    // 2. Fetch data from Sleeper REST Endpoints
-    async function loadSleeperData() {
+    // 2. Local File & Sleeper REST Endpoint Fetching
+    async function loadDashboardData() {
         try {
-            document.getElementById("loadingStatus").textContent = "Fetching users & rosters...";
-            
-            // Fetch users and rosters concurrently
-            const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
-                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`),
-                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`),
-                fetch(`https://api.sleeper.app/v1/players/nfl`)
+            // Read local file from same directory path + live endpoints concurrently
+            const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
+                fetch("roster-history.json"),
+                fetch(`https://sleeper.app{LEAGUE_ID}/users`),
+                fetch(`https://sleeper.app{LEAGUE_ID}/rosters`),
+                fetch(`https://sleeper.app`)
             ]);
 
+            draftHistoryMap = await historyRes.json();
             const users = await usersRes.json();
             const rosters = await rostersRes.json();
             const masterPlayers = await masterPlayersRes.json();
 
-            // Establish user mappings (roster_id -> Display Name)
+            // Establish owner username profiles 
             users.forEach(u => {
                 userMap[u.user_id] = u.display_name || u.username;
             });
@@ -239,37 +236,26 @@
             const teamSelect = document.getElementById("teamFilter");
             globalProcessedPlayers = [];
 
-            // Parse teams and convert player listings
+            // Process rosters and format individual player statuses
             rosters.forEach(roster => {
                 const ownerName = userMap[roster.owner_id] || `Team ${roster.roster_id}`;
                 
-                // Add unique filter dropdown entries
                 const option = document.createElement("option");
                 option.value = roster.roster_id;
                 option.textContent = ownerName;
                 teamSelect.appendChild(option);
 
-                // Build detailed keeper metrics for every player on this team
                 if (roster.players) {
-                    // Pull explicit nested keeper settings if designated via roster metadata
-                    const keeperMetadata = roster.metadata && roster.metadata.keepers ? roster.metadata.keepers.split(',') : [];
-
                     roster.players.forEach(pId => {
                         const playerData = masterPlayers[pId];
                         if (playerData) {
-                            // Calculate keeper count. Inherit default base count from Sleeper
-                            // or fallback to 0 if unlisted.
-                            let count = roster.keepers && roster.keepers.includes(pId) ? 1 : 0;
-                            
-                            // Check custom mapping override loop
-                            if (draftHistoryMap[pId] && pId === "5045") { count = 1; } // Hard mock rule for verification
-
-                            const calculation = calculateKeeperCost(playerData, count, pId);
+                            const liveCount = roster.keepers && roster.keepers.includes(pId) ? 1 : 0;
+                            const calculation = calculateKeeperCost(playerData, liveCount, pId);
 
                             globalProcessedPlayers.push({
                                 roster_id: roster.roster_id,
                                 ownerName: ownerName,
-                                keeper_count: count,
+                                keeper_count: calculation.finalKeeperCount,
                                 ...calculation
                             });
                         }
@@ -281,8 +267,8 @@
             renderTable();
 
         } catch (error) {
-            console.error("Failed to collect Sleeper API information:", error);
-            document.getElementById("loadingStatus").textContent = "API Error. Check League ID or console log.";
+            console.error("Dashboard engine parsing exception:", error);
+            document.getElementById("loadingStatus").textContent = "Error parsing file. Check paths and formats.";
         }
     }
 
@@ -316,8 +302,8 @@
         });
     }
 
-    // Fire application fetch on load
-    window.addEventListener('DOMContentLoaded', loadSleeperData);
+    // Initialize application logic
+    window.addEventListener('DOMContentLoaded', loadDashboardData);
 </script>
 
 </body>
