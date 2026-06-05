@@ -88,7 +88,8 @@ td {
 <script>
 
 let LEAGUE_ID = ""; //dynamically load LEAGUE ID from config.json
-    
+        // 2. Data Initialization Engine (Swapped out live master feed for local public cache)
+ async function loadDashboardData() {
         try {
             document.getElementById("loadingStatus").textContent = "Loading configuration...";
 
@@ -100,7 +101,7 @@ let LEAGUE_ID = ""; //dynamically load LEAGUE ID from config.json
             if (!LEAGUE_ID) {
                 throw new Error("LEAGUE_ID missing from config.json");
             }
-            
+        }
 async function loadLeague() {
 
     const users =
