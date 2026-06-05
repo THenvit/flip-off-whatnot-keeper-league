@@ -20,12 +20,12 @@ async function initDashboard() {
 
         // 2. Fetch active league managers/users from Sleeper API
         statusDiv.innerText = "Fetching league managers...";
-        const usersResponse = await fetch(`https://sleeper.app{LEAGUE_ID}/users`);
+        const usersResponse = await fetch(`https://api.sleeper.app/v1/league/{LEAGUE_ID}/users`);
         const usersData = await usersResponse.json();
 
         // 3. Fetch active league rosters from Sleeper API
         statusDiv.innerText = "Fetching league rosters...";
-        const rostersResponse = await fetch(`https://sleeper.app{LEAGUE_ID}/rosters`);
+        const rostersResponse = await fetch(`https://api.sleeper.app/v1/league/{LEAGUE_ID}/rosters`);
         const rostersData = await rostersResponse.json();
 
         // 4. Map users to a helper lookup object
