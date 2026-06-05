@@ -87,8 +87,20 @@ td {
 
 <script>
 
-const LEAGUE_ID = "1312583156339064832";
+let LEAGUE_ID = ""; //dynamically load LEAGUE ID from config.json
+    
+        try {
+            document.getElementById("loadingStatus").textContent = "Loading configuration...";
 
+            // 1. Fetch the global config file first
+            const configRes = await fetch("config.json");
+            const configData = await configRes.json();
+            LEAGUE_ID = configData.LEAGUE_ID;
+
+            if (!LEAGUE_ID) {
+                throw new Error("LEAGUE_ID missing from config.json");
+            }
+            
 async function loadLeague() {
 
     const users =
