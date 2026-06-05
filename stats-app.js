@@ -13,24 +13,24 @@ async function initDashboard() {
     }
 
     try {
-        // 1. Fetch your cached players data from your github workflow file path
-        statusDiv.innerText = "Loading cached player database...";
+        // 1. Fetch cached player dataset
+        statusDiv.innerText = "Loading cached player database (this can take a few seconds)...";
         const playersResponse = await fetch('public/players.json');
-        globalPlayersDb = await playersResponse.json();
+        globalPlayersDb = await playersResponse.json() || {};
 
-        // 2. Fetch active league managers/users from Sleeper API
-        statusDiv.innerText = "Fetching league managers...";
+        // 2. Fetch league managers/users
+        statusDiv.innerText = "Connecting to Sleeper: Fetching league managers...";
         const usersResponse = await fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`);
-        const usersData = await usersResponse.json();
+        const usersData = await usersResponse.json() || [];
 
-        // 3. Fetch active league rosters from Sleeper API
-        statusDiv.innerText = "Fetching league rosters...";
+        // 3. Fetch league rosters
+        statusDiv.innerText = "Connecting to Sleeper: Fetching league rosters...";
         const rostersResponse = await fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`);
-        const rostersData = await rostersResponse.json();
+        const rostersData = await rostersResponse.json() || [];
 
-        // 4. Map users to a helper lookup object
-      
-        // Sort rosters dynamically to calculate standings ranking (Wins -> Points For)
+        statusDiv.innerText = "Processing standings and calculating records...";
+        
+        // Bulletproof standings calculation with fallback safeguards
         const sortedRostersForStandings = [...rostersData].sort((a, b) => {
             const winsA = a.settings?.wins || 0;
             const winsB = b.settings?.wins || 0;
@@ -44,21 +44,24 @@ async function initDashboard() {
         // 4. Map users to a helper lookup object
         const usersMap = {};
         usersData.forEach(user => {
-            usersMap[user.user_id] = {
-                teamName: user.metadata.team_name || user.display_name,
-                ownerName: user.display_name
-            };
+            if (user && user.user_id) {
+                usersMap[user.user_id] = {
+                    teamName: user.metadata?.team_name || user.display_name || "Unknown Team",
+                    ownerName: user.display_name || "Unknown Owner"
+                };
+            }
         });
 
-        // 5. Combine rosters with user data, mapping roster slots and record details
+        // 5. Combine rosters with user data and player metadata
         completeLeagueData = rostersData.map(roster => {
-            const owner = usersMap[roster.owner_id] || { teamName: `Team ${roster.roster_id}`, ownerName: "Unknown" };
+            if (!roster) return null;
+            const owner = usersMap[roster.owner_id] || { teamName: `Team ${roster.roster_id || ''}`, ownerName: "Unknown Owner" };
             
             const startersList = roster.starters || [];
             const taxiList = roster.taxi || [];
             const allPlayersList = roster.players || [];
 
-            // Calculate precise record variables
+            // Calculate precise record variables safely
             const wins = roster.settings?.wins || 0;
             const losses = roster.settings?.losses || 0;
             const ties = roster.settings?.ties || 0;
@@ -99,55 +102,65 @@ async function initDashboard() {
                 teamName: owner.teamName,
                 ownerName: owner.ownerName,
                 record: recordStr,
-                rank: standingRank,
+                rank: standingRank || 1,
                 players: playerProfiles
             };
-        });
+        }).filter(Boolean); // Cleans out null items safely
 
         // Sort displayed teams alphabetically by name
-        completeLeagueData.sort((a, b) => a.teamName.localeCompare(b.teamName));
+        completeLeagueData.sort((a, b) => (a.teamName || "").localeCompare(b.teamName || ""));
 
         // 6. Setup the dropdown choices
         populateDropdown(completeLeagueData);
         
         // 7. Initial render (show everything)
+        statusDiv.innerText = "Building user interface...";
         renderDashboard("all");
         statusDiv.innerText = "Data loaded successfully.";
 
     } catch (error) {
-        console.error(error);
-        statusDiv.innerText = "Error loading data. Check console logs and verify your League ID.";
+        console.error("Dashboard error detail log:", error);
+        statusDiv.innerText = "Error loading data! Error description: " + error.message + ". Check your browser developer console tools for more context.";
     }
 }
 
 function populateDropdown(teams) {
     const select = document.getElementById('team-select');
+    if (!select) return;
+    
+    // Reset options
+    select.innerHTML = '<option value="all">-- All Teams --</option>';
+    
     teams.forEach(team => {
+        if (!team) return;
         const opt = document.createElement('option');
         opt.value = team.rosterId;
         opt.text = `${team.teamName} (Rank: #${team.rank})`;
         select.appendChild(opt);
     });
     select.disabled = false;
-    select.addEventListener('change', (e) => renderDashboard(e.target.value));
+    
+    // Clear old listener references
+    select.onchange = (e) => renderDashboard(e.target.value);
 }
-
 function renderDashboard(filterValue) {
     const container = document.getElementById('dashboard-container');
+    if (!container) return;
     container.innerHTML = ""; 
 
     const teamsToDisplay = filterValue === "all" 
         ? completeLeagueData 
-        : completeLeagueData.filter(t => t.rosterId.toString() === filterValue);
+        : completeLeagueData.filter(t => t && t.rosterId.toString() === filterValue);
 
     teamsToDisplay.forEach(team => {
+        if (!team) return;
         const section = document.createElement('div');
         section.className = 'team-section';
 
         const title = document.createElement('div');
         title.className = 'team-title';
         title.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <span>${team.teamName} <small style="font-size: 13px; color: #666; font-weight: normal;">(${team.ownerName})</small></span>
                 <span style="font-size: 14px; background: #e5e7eb; color: #374151; padding: 4px 10px; border-radius: 20px;">Rank: #${team.rank} (${team.record})</span>
             </div>
@@ -196,11 +209,11 @@ function renderDashboard(filterValue) {
 
                 const fullName = `${player.first_name || ''} ${player.last_name || ''}`;
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                         <div class="player-name">${fullName}</div>
                         <span style="background: ${posColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${pos}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;" class="player-meta">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; width: 100%;" class="player-meta">
                         <span>${player.team || 'FA'} — <span class="slot-badge ${badgeClass}">${player.slotType}</span></span>
                         ${player.injury_status ? `<b style="color: #dc2626; font-size: 11px;">[${player.injury_status}]</b>` : ''}
                     </div>
@@ -239,7 +252,7 @@ function openModal(playerId) {
     const injuryElem = document.getElementById('modal-injury');
     const rankElem = document.getElementById('modal-rank');
     const projPprElem = document.getElementById('modal-proj-ppr');
-    const olderProjElem = document.getElementById('modal-proj'); // Fallback for older HTML
+    const olderProjElem = document.getElementById('modal-proj'); 
 
     if (nameElem) nameElem.innerText = `${player.first_name || ''} ${player.last_name || ''}`;
     if (posElem) posElem.innerText = pos;
@@ -247,7 +260,6 @@ function openModal(playerId) {
     if (statusElem) statusElem.innerText = player.status || 'Active';
     if (injuryElem) injuryElem.innerText = player.injury_status || 'Healthy';
     
-    // Protected writes to avoid crashing if IDs don't match
     if (rankElem) rankElem.innerText = explicitRankText;
     if (projPprElem) projPprElem.innerText = projectedPPR;
     if (olderProjElem) olderProjElem.innerText = projectedPPR;
@@ -258,3 +270,13 @@ function openModal(playerId) {
     if (overlay) overlay.classList.add('show');
     if (modal) modal.classList.add('show');
 }
+
+function closeModal() {
+    const overlay = document.getElementById('modal-overlay');
+    const modal = document.getElementById('stats-modal');
+    if (overlay) overlay.classList.remove('show');
+    if (modal) modal.classList.remove('show');
+}
+
+// Boot everything up on load
+window.onload = initDashboard;
