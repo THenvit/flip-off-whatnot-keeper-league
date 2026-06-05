@@ -209,12 +209,12 @@
         };
     }
 
-    // 2. Data Initialization Engine
+        // 2. Data Initialization Engine (Swapped out live master feed for local public cache)
     async function loadDashboardData() {
         try {
             document.getElementById("loadingStatus").textContent = "Loading configuration...";
 
-            // First, fetch the global config file
+            // 1. Fetch the global config file first
             const configRes = await fetch("config.json");
             const configData = await configRes.json();
             LEAGUE_ID = configData.LEAGUE_ID;
@@ -225,14 +225,21 @@
 
             document.getElementById("loadingStatus").textContent = "Loading history and Sleeper data...";
 
-            // Run history and API fetches concurrently using the dynamic league ID
+            // 2. Construct local asset paths and external league endpoints
+            const historyUrl = "roster-history.json";
+            const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
+            const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
+            const masterPlayersUrl = 'public/players.json'; // Direct path to your daily cron job cache
+
+            // 3. Fire all 4 fetches concurrently
             const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
-                fetch("roster-history.json"),
-                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`),
-                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`)
-               // fetch(`https://api.sleeper.app/v1/`)
+                fetch(historyUrl),
+                fetch(usersUrl),
+                fetch(rostersUrl),
+                fetch(masterPlayersUrl)
             ]);
 
+            // 4. Parse all JSON data streams cleanly
             draftHistoryMap = await historyRes.json();
             const users = await usersRes.json();
             const rosters = await rostersRes.json();
@@ -248,7 +255,7 @@
 
             // Process rosters and format individual player statuses
             rosters.forEach(roster => {
-                const ownerName = userMap[roster.owner_id] || `Team ${roster.roster_id}`;
+                const ownerName = userMap[roster.owner_id] || ('Team ' + roster.roster_id);
                 
                 const option = document.createElement("option");
                 option.value = roster.roster_id;
@@ -278,7 +285,7 @@
 
         } catch (error) {
             console.error("Dashboard initialization error:", error);
-            document.getElementById("loadingStatus").textContent = "Initialization Error. Check config.json and console.";
+            document.getElementById("loadingStatus").textContent = "Initialization Error. Check console logs.";
         }
     }
 
