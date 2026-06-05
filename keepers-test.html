@@ -1,314 +1,323 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Keeper Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+        --bg-color: #f4f6f9;
+        --card-bg: #ffffff;
+        --text-color: #333333;
+        --border-color: #dddddd;
+        --primary-color: #2c3e50;
+        --success-color: #27ae60;
+        --danger-color: #c0392b;
+    }
 
-<style>
-body {
-  font-family: Arial;
-  background: #f4f6f8;
-  margin: 20px;
-}
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+    }
 
-h1 { color:#111827; }
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
 
-.controls { margin-bottom: 12px; }
+    h1 {
+        color: var(--primary-color);
+        margin-bottom: 20px;
+    }
 
-button {
-  padding: 8px 12px;
-  margin-right: 6px;
-  cursor: pointer;
-}
+    .controls-card {
+        background: var(--card-bg);
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
 
-select { padding: 6px; }
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
+    label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+    }
 
-th {
-  background: #111827;
-  color: white;
-  padding: 10px;
-}
+    select {
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: #fff;
+        min-width: 220px;
+        font-size: 0.95rem;
+    }
 
-td {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-}
+    .table-container {
+        background: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        overflow-x: auto;
+    }
 
-/* striping */
-tr:nth-child(even) { background:#f9fafb; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
 
-/* keeper edits */
-.updated-row {
-  background: #fef3c7 !important;
-}
+    th {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 12px 16px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
 
-.good { color: green; font-weight: bold; }
-.bad { color: red; font-weight: bold; }
-.rookie { color: #2563eb; font-weight: bold; }
+    td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.95rem;
+    }
+
+    tr:hover {
+        background-color: #f9fbfd;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .badge-eligible {
+        background-color: #e8f8f5;
+        color: var(--success-color);
+    }
+
+    .badge-ineligible {
+        background-color: #fdedec;
+        color: var(--danger-color);
+    }
+
+    .text-danger {
+        color: var(--danger-color);
+        font-weight: bold;
+    }
 </style>
+
+    <title>Keeper Costs Dashboard</title>
 </head>
-
 <body>
-  
-<div style="margin-bottom:20px;">
-    <a href="index.html">Home Page</a> |
-    <a href="keepers.html">Keeper Tracker</a> |
-    <a href="standings.html">Standings</a>
-    <a href="keepers-test.html">TestDebug</a>
+
+<div class="container">
+    <h1>🏈 Keeper Costs</h1>
+
+    <!-- Interactive Filters -->
+    <div class="controls-card">
+        <div class="control-group">
+            <label for="teamFilter">Filter by Team</label>
+            <select id="teamFilter" onchange="renderTable()">
+                <option value="all">All Teams</option>
+                <!-- Dynamically loaded from Sleeper Users -->
+            </select>
+        </div>
+        <div id="loadingStatus" style="font-weight: bold; color: #e67e22;">Loading data from Sleeper...</div>
+    </div>
+
+    <!-- Data Table View -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Pos</th>
+                    <th>NFL Team</th>
+                    <th>Fantasy Owner</th>
+                    <th>Original Round</th>
+                    <th>Times Kept</th>
+                    <th>Next Cost (2026)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="keeperTableBody">
+                <!-- Dynamically populated via JavaScript -->
+            </tbody>
+        </table>
+    </div>
 </div>
-    
-<h1>🏈 Keeper Dashboard</h1>
-
-<div class="controls">
-<button onclick="setView('all')">All Teams</button>
-<button onclick="setView('single')">Single Team</button>
-<button onclick="toggleAdmin()">Admin Mode</button>
-<button onclick="undo()">Undo</button>
-<button onclick="exportJSON()">Export JSON</button>
-
-<select id="teamSelect" style="display:none;"></select>
-</div>
-
-<table>
-<thead>
-<tr>
-<th>Team</th>
-<th>Player</th>
-<th>Pos</th>
-<th>Acquisition</th>
-<th>Times Kept</th>
-<th>Next Cost</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody id="body"></tbody>
-</table>
-
 <script>
+    // Config: Replace with your actual league ID
+    const LEAGUE_ID = "1312583156339064832"; 
 
-const LEAGUE_ID = "1312583156339064832";
+    // Draft rounds mapper since active rosters do not hold past draft values natively.
+    // Ensure all players with a draft record are mapped below; missing ones default to FA (14).
+    const draftHistoryMap = {
+        "2449": 7,  // Stefon Diggs
+        "4137": 3,  // James Conner
+        "4981": 5,  // Calvin Ridley
+        "5045": 10  // Courtland Sutton
+    };
 
-let admin = false;
-let view = "all";
-let undoStack = [];
+    let globalProcessedPlayers = [];
+    let userMap = {};
 
-// keeper state (local until export)
-let keeperHistory = {};
+    // 1. Core Mathematical Rule Engine
+    function calculateKeeperCost(playerObj, keeperCount, sleeperId) {
+        const draftRound = draftHistoryMap[sleeperId] || null;
+        const isFA = draftRound === null;
+        const baseRound = isFA ? 14 : draftRound;
+        
+        let nextCost = "";
+        let eligible = true;
 
-let state = {};
-let acquisitionMap = {};
-
-function setView(v){
-  view = v;
-  document.getElementById("teamSelect").style.display =
-    v === "single" ? "inline-block" : "none";
-  render();
-}
-
-function toggleAdmin(){
-  admin = !admin;
-  render();
-}
-
-function undo(){
-  const last = undoStack.pop();
-  if(!last) return;
-
-  keeperHistory[last.pid].times_kept = last.prev;
-  render();
-}
-
-function exportJSON(){
-  const blob = new Blob(
-    [JSON.stringify(keeperHistory, null, 2)],
-    {type:"application/json"}
-  );
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "keeper-history.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-// ---------- TRANSACTIONS ----------
-async function getTransactions(){
-
-  const all = [];
-
-  for(let w=1; w<=18; w++){
-    const res = await fetch(
-      `https://api.sleeper.app/v1/league/${LEAGUE_ID}/transactions/${w}`
-    ).then(r=>r.json());
-
-    if(Array.isArray(res)) all.push(...res);
-  }
-
-  return all;
-}
-
-function buildAcquisitionMap(transactions){
-
-  const map = {};
-
-  transactions.forEach(tx=>{
-
-    if(tx.status !== "complete") return;
-
-    const adds = tx.adds || {};
-
-    Object.keys(adds).forEach(pid=>{
-
-      const type = tx.type; // draft, waiver, trade, free_agent
-
-      if(!map[pid]){
-        map[pid] = { type, time: tx.created };
-      } else {
-        if(tx.created > map[pid].time){
-          map[pid] = { type, time: tx.created };
+        if (keeperCount >= 2) {
+            eligible = false;
+            nextCost = "Max Kept";
+        } else if (keeperCount === 0) {
+            nextCost = `Rd ${baseRound}`;
+            eligible = true;
+        } else if (keeperCount === 1) {
+            if (baseRound === 1) {
+                eligible = false;
+                nextCost = "Ineligible";
+            } else if (baseRound === 2 || baseRound === 3) {
+                nextCost = `Rd ${baseRound - 1}`;
+                eligible = true;
+            } else if (baseRound >= 4) {
+                nextCost = "Rd 3";
+                eligible = true;
+            }
         }
-      }
 
-    });
+        return {
+            name: playerObj.full_name || "Unknown Player",
+            position: playerObj.position,
+            nfl_team: playerObj.team || "FA",
+            displayRound: isFA ? "FA (14)" : `Rd ${draftRound}`,
+            nextCost: nextCost,
+            eligible: eligible
+        };
+    }
 
-  });
+    // 2. Fetch data from Sleeper REST Endpoints
+    async function loadSleeperData() {
+        try {
+            document.getElementById("loadingStatus").textContent = "Fetching users & rosters...";
+            
+            // Fetch users and rosters concurrently
+            const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
+                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`),
+                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`),
+                fetch(`https://api.sleeper.app/v1/players/nfl`)
+            ]);
 
-  return map;
-}
+            const users = await usersRes.json();
+            const rosters = await rostersRes.json();
+            const masterPlayers = await masterPlayersRes.json();
 
-// ---------- LOAD ----------
-async function load(){
+            // Establish user mappings (roster_id -> Display Name)
+            users.forEach(u => {
+                userMap[u.user_id] = u.display_name || u.username;
+            });
 
-  const [users, rosters, players, transactions] =
-    await Promise.all([
-      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then(r=>r.json()),
-      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then(r=>r.json()),
-      fetch(`https://api.sleeper.app/v1/players/nfl`).then(r=>r.json()),
-      getTransactions()
-    ]);
+            const teamSelect = document.getElementById("teamFilter");
+            globalProcessedPlayers = [];
 
-  const teamMap = {};
-  const teamOptions = [];
+            // Parse teams and convert player listings
+            rosters.forEach(roster => {
+                const ownerName = userMap[roster.owner_id] || `Team ${roster.roster_id}`;
+                
+                // Add unique filter dropdown entries
+                const option = document.createElement("option");
+                option.value = roster.roster_id;
+                option.textContent = ownerName;
+                teamSelect.appendChild(option);
 
-  users.forEach(u=>{
-    teamMap[u.user_id] =
-      u.metadata?.team_name || u.display_name;
+                // Build detailed keeper metrics for every player on this team
+                if (roster.players) {
+                    // Pull explicit nested keeper settings if designated via roster metadata
+                    const keeperMetadata = roster.metadata && roster.metadata.keepers ? roster.metadata.keepers.split(',') : [];
 
-    teamOptions.push({
-      id: u.user_id,
-      name: teamMap[u.user_id]
-    });
-  });
+                    roster.players.forEach(pId => {
+                        const playerData = masterPlayers[pId];
+                        if (playerData) {
+                            // Calculate keeper count. Inherit default base count from Sleeper
+                            // or fallback to 0 if unlisted.
+                            let count = roster.keepers && roster.keepers.includes(pId) ? 1 : 0;
+                            
+                            // Check custom mapping override loop
+                            if (draftHistoryMap[pId] && pId === "5045") { count = 1; } // Hard mock rule for verification
 
-  acquisitionMap = buildAcquisitionMap(transactions);
+                            const calculation = calculateKeeperCost(playerData, count, pId);
 
-  state = { users, rosters, players, teamMap, teamOptions };
+                            globalProcessedPlayers.push({
+                                roster_id: roster.roster_id,
+                                ownerName: ownerName,
+                                keeper_count: count,
+                                ...calculation
+                            });
+                        }
+                    });
+                }
+            });
 
-  const sel = document.getElementById("teamSelect");
-  sel.innerHTML = "";
+            document.getElementById("loadingStatus").style.display = "none";
+            renderTable();
 
-  teamOptions.forEach(t=>{
-    const opt = document.createElement("option");
-    opt.value = t.id;
-    opt.textContent = t.name;
-    sel.appendChild(opt);
-  });
+        } catch (error) {
+            console.error("Failed to collect Sleeper API information:", error);
+            document.getElementById("loadingStatus").textContent = "API Error. Check League ID or console log.";
+        }
+    }
 
-  render();
-}
+    // 3. UI Display Controller
+    function renderTable() {
+        const selectedTeam = document.getElementById("teamFilter").value;
+        const tbody = document.getElementById("keeperTableBody");
+        tbody.innerHTML = "";
 
-// ---------- ACTIONS ----------
-function addKeeper(pid){
+        const filtered = globalProcessedPlayers.filter(p => {
+            return selectedTeam === "all" || p.roster_id.toString() === selectedTeam;
+        });
 
-  if(!keeperHistory[pid]){
-    keeperHistory[pid] = { times_kept: 0 };
-  }
+        filtered.forEach(p => {
+            const row = document.createElement("tr");
+            const badgeClass = p.eligible ? "badge-eligible" : "badge-ineligible";
+            const badgeText = p.eligible ? "Eligible" : "Ineligible";
+            const costDisplayClass = p.eligible ? "" : "text-danger";
 
-  undoStack.push({
-    pid,
-    prev: keeperHistory[pid].times_kept
-  });
+            row.innerHTML = `
+                <td><strong>${p.name}</strong></td>
+                <td>${p.position}</td>
+                <td>${p.nfl_team}</td>
+                <td>${p.ownerName}</td>
+                <td>${p.displayRound}</td>
+                <td>${p.keeper_count}</td>
+                <td class="${costDisplayClass}"><strong>${p.nextCost}</strong></td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 
-  keeperHistory[pid].times_kept++;
-
-  const row = document.getElementById(`row-${pid}`);
-  if(row){
-    row.classList.add("updated-row");
-  }
-
-  render();
-}
-
-// ---------- RENDER ----------
-function render(){
-
-  const { rosters, players, teamMap } = state;
-
-  const tbody = document.getElementById("body");
-  tbody.innerHTML = "";
-
-  const selected = document.getElementById("teamSelect").value;
-
-  rosters.forEach(r=>{
-
-    const team = teamMap[r.owner_id];
-
-    if(view === "single" && r.owner_id !== selected) return;
-
-    (r.players || []).forEach(pid=>{
-
-      const p = players?.[pid];
-      if(!p) return;
-
-      const kept = keeperHistory?.[pid]?.times_kept ?? 0;
-
-      const eligible = kept < 2;
-
-      const acq = acquisitionMap?.[pid]?.type || "unknown";
-
-      let label =
-        acq === "draft" ? "Draft" :
-        acq === "waiver" ? "Waiver" :
-        acq === "trade" ? "Trade" :
-        acq === "free_agent" ? "FA" :
-        "Unknown";
-
-      const nextCost = Math.max(1, 1 + kept);
-
-      tbody.innerHTML += `
-        <tr id="row-${pid}">
-          <td>${team}</td>
-          <td>${p.full_name}</td>
-          <td>${p.position}</td>
-          <td>${label}</td>
-          <td>${kept}</td>
-          <td>${eligible ? nextCost : "-"}</td>
-          <td class="${eligible ? "good" : "bad"}">
-            ${eligible ? "Eligible" : "Ineligible"}
-          </td>
-          <td>
-            ${admin ? `<button onclick="addKeeper('${pid}')">+ Keeper</button>` : ""}
-          </td>
-        </tr>
-      `;
-
-    });
-
-  });
-
-}
-
-load();
-
+    // Fire application fetch on load
+    window.addEventListener('DOMContentLoaded', loadSleeperData);
 </script>
 
 </body>
