@@ -1,5 +1,5 @@
 // CONFIGURATION: Replace this with your actual 18-digit Sleeper League ID
-const LEAGUE_ID = "YOUR_SLEEPER_LEAGUE_ID_HERE"; 
+const LEAGUE_ID = "1312583156339064832"; 
 
 let globalPlayersDb = {};
 let completeLeagueData = [];
@@ -7,7 +7,7 @@ let completeLeagueData = [];
 async function initDashboard() {
     const statusDiv = document.getElementById('status');
     
-    if (LEAGUE_ID === "1312583156339064832") {
+    if (LEAGUE_ID === "YOUR_SLEEPER_LEAGUE_ID_HERE") {
         statusDiv.innerText = "Error: Please edit app.js and set your actual LEAGUE_ID variable.";
         return;
     }
