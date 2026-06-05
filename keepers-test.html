@@ -228,8 +228,8 @@
             // Run history and API fetches concurrently using the dynamic league ID
             const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
                 fetch("roster-history.json"),
-                fetch(`https://sleeper.app{LEAGUE_ID}/users`),
-                fetch(`https://sleeper.app{LEAGUE_ID}/rosters`),
+                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`),
+                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`),
                 fetch(`https://sleeper.app`)
             ]);
 
