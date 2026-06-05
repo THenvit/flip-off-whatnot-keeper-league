@@ -231,23 +231,30 @@ function openModal(playerId) {
     // Grab fantasy projection arrays if present, otherwise set baseline metrics
     const projectedPPR = player.fantasy_points_ppr || player.projected_points || "N/A";
 
-    document.getElementById('modal-name').innerText = `${player.first_name || ''} ${player.last_name || ''}`;
-    document.getElementById('modal-pos').innerText = pos;
-    document.getElementById('modal-team').innerText = player.team || 'Free Agent';
-    document.getElementById('modal-status-txt').innerText = player.status || 'Active';
-    document.getElementById('modal-injury').innerText = player.injury_status || 'Healthy';
+    // Safely look up elements before trying to write to their innerText
+    const nameElem = document.getElementById('modal-name');
+    const posElem = document.getElementById('modal-pos');
+    const teamElem = document.getElementById('modal-team');
+    const statusElem = document.getElementById('modal-status-txt');
+    const injuryElem = document.getElementById('modal-injury');
+    const rankElem = document.getElementById('modal-rank');
+    const projPprElem = document.getElementById('modal-proj-ppr');
+    const olderProjElem = document.getElementById('modal-proj'); // Fallback for older HTML
+
+    if (nameElem) nameElem.innerText = `${player.first_name || ''} ${player.last_name || ''}`;
+    if (posElem) posElem.innerText = pos;
+    if (teamElem) teamElem.innerText = player.team || 'Free Agent';
+    if (statusElem) statusElem.innerText = player.status || 'Active';
+    if (injuryElem) injuryElem.innerText = player.injury_status || 'Healthy';
     
-    // Write properties directly to our interface hooks
-    document.getElementById('modal-rank').innerText = explicitRankText;
-    document.getElementById('modal-proj-ppr').innerText = projectedPPR;
+    // Protected writes to avoid crashing if IDs don't match
+    if (rankElem) rankElem.innerText = explicitRankText;
+    if (projPprElem) projPprElem.innerText = projectedPPR;
+    if (olderProjElem) olderProjElem.innerText = projectedPPR;
 
-    document.getElementById('modal-overlay').classList.add('show');
-    document.getElementById('stats-modal').classList.add('show');
+    // Show the modal containers
+    const overlay = document.getElementById('modal-overlay');
+    const modal = document.getElementById('stats-modal');
+    if (overlay) overlay.classList.add('show');
+    if (modal) modal.classList.add('show');
 }
-
-function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('show');
-    document.getElementById('stats-modal').classList.remove('show');
-}
-
-window.onload = initDashboard;
