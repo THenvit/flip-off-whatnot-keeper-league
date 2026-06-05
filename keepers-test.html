@@ -119,6 +119,14 @@
         color: var(--danger-color);
         font-weight: bold;
     }
+    /* Highlights the first column (Fantasy Owner) */
+    td:first-child {
+        background-color: #f8fafc;
+        font-weight: 600;
+        color: var(--primary-color);
+        border-right: 2px solid #eaedf2;
+     }
+
 </style>
 
     <title>Keeper Costs Dashboard</title>
@@ -139,15 +147,15 @@
         <div id="loadingStatus" style="font-weight: bold; color: #e67e22;">Loading file metrics and Sleeper API...</div>
     </div>
 
-    <!-- Data Table View -->
+       <!-- Data Table View -->
     <div class="table-container">
         <table>
             <thead>
                 <tr>
+                    <th>Fantasy Owner</th>
                     <th>Player</th>
                     <th>Pos</th>
                     <th>NFL Team</th>
-                    <th>Fantasy Owner</th>
                     <th>Original Round</th>
                     <th>Times Kept</th>
                     <th>Next Cost (2026)</th>
@@ -289,7 +297,7 @@
         }
     }
 
-    // 3. UI Display Controller
+    // 3. UI Display Controller (Owner Column Moved First)
     function renderTable() {
         const selectedTeam = document.getElementById("teamFilter").value;
         const tbody = document.getElementById("keeperTableBody");
@@ -305,11 +313,12 @@
             const badgeText = p.eligible ? "Eligible" : "Ineligible";
             const costDisplayClass = p.eligible ? "" : "text-danger";
 
+            // Row cell ordering restructured to match new layout header
             row.innerHTML = `
+                <td>${p.ownerName}</td>
                 <td><strong>${p.name}</strong></td>
                 <td>${p.position}</td>
                 <td>${p.nfl_team}</td>
-                <td>${p.ownerName}</td>
                 <td>${p.displayRound}</td>
                 <td>${p.keeper_count}</td>
                 <td class="${costDisplayClass}"><strong>${p.nextCost}</strong></td>
