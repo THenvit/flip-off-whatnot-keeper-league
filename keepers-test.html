@@ -160,10 +160,9 @@
         </table>
     </div>
 </div>
-<script>
-    // Config: Input your actual dynamic league key string
-    const LEAGUE_ID = "1312583156339064832"; 
 
+    <script>
+    let LEAGUE_ID = ""; // Dynamically loaded from config.json
     let globalProcessedPlayers = [];
     let userMap = {};
     let draftHistoryMap = {}; 
@@ -172,8 +171,6 @@
     function calculateKeeperCost(playerObj, keeperCount, sleeperId) {
         const historyRecord = draftHistoryMap[sleeperId];
         const draftRound = (historyRecord && historyRecord.draft_round !== null) ? historyRecord.draft_round : null;
-        
-        // Inherit keeper count tracker from local file data
         const localKeeperCount = (historyRecord !== undefined) ? historyRecord.keeper_count : keeperCount;
 
         const isFA = draftRound === null;
@@ -212,10 +209,23 @@
         };
     }
 
-    // 2. Local File & Sleeper REST Endpoint Fetching
+    // 2. Data Initialization Engine
     async function loadDashboardData() {
         try {
-            // Read local file from same directory path + live endpoints concurrently
+            document.getElementById("loadingStatus").textContent = "Loading configuration...";
+
+            // First, fetch the global config file
+            const configRes = await fetch("config.json");
+            const configData = await configRes.json();
+            LEAGUE_ID = configData.LEAGUE_ID;
+
+            if (!LEAGUE_ID) {
+                throw new Error("LEAGUE_ID missing from config.json");
+            }
+
+            document.getElementById("loadingStatus").textContent = "Loading history and Sleeper data...";
+
+            // Run history and API fetches concurrently using the dynamic league ID
             const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
                 fetch("roster-history.json"),
                 fetch(`https://sleeper.app{LEAGUE_ID}/users`),
@@ -267,8 +277,8 @@
             renderTable();
 
         } catch (error) {
-            console.error("Dashboard engine parsing exception:", error);
-            document.getElementById("loadingStatus").textContent = "Error parsing file. Check paths and formats.";
+            console.error("Dashboard initialization error:", error);
+            document.getElementById("loadingStatus").textContent = "Initialization Error. Check config.json and console.";
         }
     }
 
@@ -305,6 +315,7 @@
     // Initialize application logic
     window.addEventListener('DOMContentLoaded', loadDashboardData);
 </script>
+
 
 </body>
 </html>
