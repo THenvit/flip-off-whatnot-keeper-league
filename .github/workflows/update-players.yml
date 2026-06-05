@@ -23,7 +23,7 @@ jobs:
         mkdir -p public
 
     - name: Download Sleeper Data
-      run: wget -O public/players.json https://sleeper.app
+      run: wget -O public/players.json https://api.sleeper.app/v1/players/nfl
 
     - name: Commit and Push to Repository
       run: |
