@@ -229,8 +229,8 @@
             const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
                 fetch("roster-history.json"),
                 fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`),
-                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`),
-                fetch(`https://sleeper.app`)
+                fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`)
+               // fetch(`https://api.sleeper.app/v1/`)
             ]);
 
             draftHistoryMap = await historyRes.json();
