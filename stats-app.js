@@ -1,5 +1,5 @@
 // CONFIGURATION: Replace this with your actual 18-digit Sleeper League ID
-const LEAGUE_ID = "1312583156339064832"; 
+const LEAGUE_ID = "YOUR_SLEEPER_LEAGUE_ID_HERE"; 
 
 let globalPlayersDb = {};
 let completeLeagueData = [];
@@ -8,7 +8,7 @@ async function initDashboard() {
     const statusDiv = document.getElementById('status');
     
     if (LEAGUE_ID === "YOUR_SLEEPER_LEAGUE_ID_HERE") {
-        statusDiv.innerText = "Error: Please edit app.js and set your actual LEAGUE_ID variable.";
+        statusDiv.innerText = "Error: Please edit stat-app.js and set your actual LEAGUE_ID variable.";
         return;
     }
 
@@ -37,13 +37,39 @@ async function initDashboard() {
             };
         });
 
-        // 5. Combine rosters with user data and player metadata
+        // 5. Combine rosters with user data, mapping roster slots (Starters vs Bench)
         completeLeagueData = rostersData.map(roster => {
             const owner = usersMap[roster.owner_id] || { teamName: `Team ${roster.roster_id}`, ownerName: "Unknown" };
             
-            // Resolve player strings to database profiles
-            const playerProfiles = (roster.players || []).map(id => {
-                return globalPlayersDb[id] || { player_id: id, first_name: "Unknown", last_name: `Player (${id})`, position: "N/A", team: "N/A" };
+            const startersList = roster.starters || [];
+            const taxiList = roster.taxi || [];
+            const allPlayersList = roster.players || [];
+
+            // Resolve player strings to database profiles and assign lineup statuses
+            const playerProfiles = allPlayersList.map(id => {
+                const baseProfile = globalPlayersDb[id] || { 
+                    player_id: id, 
+                    first_name: "Unknown", 
+                    last_name: `Player (${id})`, 
+                    position: "N/A", 
+                    team: "N/A" 
+                };
+
+                // Determine precise roster designation matching Sleeper logic
+                let slotType = "Bench";
+                let starterIndex = startersList.indexOf(id);
+                
+                if (starterIndex !== -1) {
+                    slotType = "Starter";
+                } else if (taxiList.includes(id)) {
+                    slotType = "Taxi";
+                }
+
+                return {
+                    ...baseProfile,
+                    slotType: slotType,
+                    starterOrder: starterIndex // Used to maintain exact lineup order (QB, RB, WR...)
+                };
             });
 
             return {
@@ -86,13 +112,11 @@ function renderDashboard(filterValue) {
     const container = document.getElementById('dashboard-container');
     container.innerHTML = ""; // Wipe older views
 
-    // Filter teams based on user dropdown selection
     const teamsToDisplay = filterValue === "all" 
         ? completeLeagueData 
         : completeLeagueData.filter(t => t.rosterId.toString() === filterValue);
 
     teamsToDisplay.forEach(team => {
-        // Create a block section for the team container
         const section = document.createElement('div');
         section.className = 'team-section';
 
@@ -101,26 +125,57 @@ function renderDashboard(filterValue) {
         title.innerText = `${team.teamName} (${team.ownerName})`;
         section.appendChild(title);
 
-        const grid = document.createElement('div');
-        grid.className = 'roster-grid';
+        // Separate players into distinct designation categories
+        const starters = team.players.filter(p => p.slotType === "Starter").sort((a, b) => a.starterOrder - b.starterOrder);
+        const bench = team.players.filter(p => p.slotType === "Bench").sort((a, b) => (a.position || "").localeCompare(b.position || ""));
+        const taxi = team.players.filter(p => p.slotType === "Taxi").sort((a, b) => (a.position || "").localeCompare(b.position || ""));
 
-        // Sort players by position (e.g., QB, RB, WR, TE)
-        const sortedPlayers = [...team.players].sort((a,b) => (a.position || "").localeCompare(b.position || ""));
+        // Helper function to render grouped sub-grids
+        const createSubSection = (label, playerArray, badgeClass) => {
+            if (playerArray.length === 0) return;
 
-        sortedPlayers.forEach(player => {
-            const card = document.createElement('div');
-            card.className = 'player-card';
-            card.onclick = () => openModal(player.player_id);
+            const subHeader = document.createElement('h4');
+            subHeader.style.margin = "20px 0 10px 0";
+            subHeader.style.color = "#555";
+            subHeader.innerText = label;
+            section.appendChild(subHeader);
 
-            const fullName = `${player.first_name || ''} ${player.last_name || ''}`;
-            card.innerHTML = `
-                <div class="player-name">${fullName}</div>
-                <div class="player-meta">${player.position || 'N/A'} - ${player.team || 'FA'}</div>
-            `;
-            grid.appendChild(card);
-        });
+            const grid = document.createElement('div');
+            grid.className = 'roster-grid';
 
-        section.appendChild(grid);
+            playerArray.forEach(player => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.onclick = () => openModal(player.player_id);
+
+                // Dynamically color code the positions matching classic fantasy themes
+                const pos = player.position || 'N/A';
+                let posColor = '#ccc';
+                if (pos === 'QB') posColor = '#ff4d4d';
+                else if (pos === 'RB') posColor = '#3b82f6';
+                else if (pos === 'WR') posColor = '#10b981';
+                else if (pos === 'TE') posColor = '#f59e0b';
+                else if (pos === 'K') posColor = '#a855f7';
+                else if (pos === 'DEF') posColor = '#6b7280';
+
+                const fullName = `${player.first_name || ''} ${player.last_name || ''}`;
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div class="player-name">${fullName}</div>
+                        <span style="background: ${posColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${pos}</span>
+                    </div>
+                    <div class="player-meta">${player.team || 'FA'} — <span class="slot-badge ${badgeClass}">${player.slotType}</span></div>
+                `;
+                grid.appendChild(card);
+            });
+            section.appendChild(grid);
+        };
+
+        // Output Starters first, followed by the Bench and Taxi squads
+        createSubSection("Starters", starters, "badge-starter");
+        createSubSection("Bench", bench, "badge-bench");
+        createSubSection("Taxi Squad", taxi, "badge-taxi");
+
         container.appendChild(section);
     });
 }
