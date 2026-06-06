@@ -310,8 +310,8 @@
 
             const historyUrl = "roster-history.json";
             const rookiesUrl = "rookies.json";
-            const usersUrl = 'https://sleeper.app' + LEAGUE_ID + '/users';
-            const rostersUrl = 'https://sleeper.app' + LEAGUE_ID + '/rosters';
+            const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
+            const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
             const masterPlayersUrl = 'public/players.json'; 
 
             const [historyRes, rookiesRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
