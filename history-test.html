@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #1e3a8a;
+            --accent: #3b82f6;
+            --gold: #f59e0b;
+            --sacko: #9a3412;
+        }
+    
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding-top: 60px;
+        }
+    
+        .nav-bar {
+            background: #0f172a;
+            padding: 0 20px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    
+        .nav-bar a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+    
+        .nav-bar a:hover, .nav-bar a.active {
+            color: #ffffff;
+            background: var(--accent);
+        }
+    
+        .history-container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+    
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 25px;
+        }
+    
+        /* Tab Switcher Styling */
+        .tab-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+    
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+    
+        .tab-btn:hover {
+            color: var(--primary);
+            background: #e2e8f0;
+        }
+    
+        .tab-btn.active {
+            color: #ffffff;
+            background: var(--primary);
+        }
+    
+        /* Dynamic View Management */
+        .history-view {
+            display: none;
+        }
+    
+        .history-view.active-view {
+            display: block;
+        }
+    
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+    
+        .card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+    
+        /* Table Formatting */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+    
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            padding: 12px 16px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border-color);
+        }
+    
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+    
+        /* Champions Row Component Card */
+        .champ-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+        }
+    
+        .champ-year {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            width: 80px;
+        }
+    
+        .champ-details {
+            flex-grow: 1;
+            font-size: 0.95rem;
+        }
+    
+        /* Records Grid Box Panel cards */
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+    
+        .record-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            border-top: 4px solid var(--accent);
+        }
+    
+        .record-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+    
+        .record-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+    
+        .record-meta {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+    </style>
+
+    <title>League History - Flip Off Whatnot</title>
+</head>
+<body>
+
+<!-- Pinned Navigation Header Bar -->
+<div class="nav-bar">
+    <a href="index.html">Home Page</a>
+    <a href="keepers.html">Keeper Tracker</a>
+    <a href="standings.html">Standings</a>
+    <a href="rules.html">League Rules</a>
+    <a href="team-stat-page.html">Team Rosters</a>
+    <a href="history.html" class="active">League History</a>
+</div>
+
+<div class="history-container">
+    <h1>📜 League Record Book & History</h1>
+
+    <!-- Interactive View Tabs -->
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="switchView('champs')">🏆 Hall of Fame</button>
+        <button class="tab-btn" onclick="switchView('leaderboard')">📊 All-Time Leaderboard</button>
+        <button class="tab-btn" onclick="switchView('records')">👑 Record Book</button>
+    </div>
+
+    <!-- VIEW 1: CHAMPIONS WALL -->
+    <div id="view-champs" class="history-view active-view">
+        <div class="card">
+            <h2>League Champions Timeline</h2>
+            <div id="champsTimeline">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: ALL-TIME LEADERBOARD -->
+    <div id="view-leaderboard" class="history-view">
+        <div class="card">
+            <h2>Cumulative Regular Season Standings</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Manager</th>
+                            <th style="text-align: center;">Wins</th>
+                            <th style="text-align: center;">Losses</th>
+                            <th style="text-align: center;">Win Pct</th>
+                            <th style="text-align: right;">Total PF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: LEAGUE RECORD BOOK -->
+    <div id="view-records" class="history-view">
+        <div class="records-grid" id="recordsGrid">
+            <!-- Populated via JS -->
+        </div>
+    </div>
+</div>
+  <script>
+      // Tab switching engine controller
+      function switchView(viewName) {
+          // Clear all active views and states
+          document.querySelectorAll('.history-view').forEach(v => v.classList.remove('active-view'));
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  
+          // Toggle selected elements
+          document.getElementById('view-' + viewName).classList.add('active-view');
+          event.currentTarget.classList.add('active');
+      }
+  
+      // Load metrics from local central league history repository asset file
+      async function loadHistoryData() {
+          try {
+              const response = await fetch("league-history.json");
+              const data = await response.json();
+  
+              // 1. Populating the Champions Timeline Wall
+              const champsContainer = document.getElementById("champsTimeline");
+              champsContainer.innerHTML = "";
+              
+              data.champions.forEach(c => {
+                  champsContainer.innerHTML += `
+                      <div class="champ-row">
+                          <div class="champ-year">${c.year}</div>
+                          <div class="champ-details">
+                              🏆 <strong>${c.winner}</strong> (${c.team_name}) <br>
+                              <span style="color: var(--text-muted); font-size: 0.85rem;">Runner Up: ${c.runner_up} | 🚽 Sacko: ${c.sacko || 'N/A'}</span>
+                          </div>
+                      </div>
+                  `;
+              });
+  
+              // 2. Populating the All-Time Cumulative Leaderboard Table
+              const leaderboardBody = document.getElementById("leaderboardBody");
+              leaderboardBody.innerHTML = "";
+  
+              // Sort managers automatically by Win Percentage
+              let sortedLeaderboard = [...data.all_time_leaderboard];
+              sortedLeaderboard.sort((a, b) => b.pct - a.pct);
+  
+              sortedLeaderboard.forEach(row => {
+                  leaderboardBody.innerHTML += `
+                      <tr>
+                          <td><strong>${row.manager}</strong></td>
+                          <td style="text-align: center; font-weight: 600;">${row.wins}</td>
+                          <td style="text-align: center; color: var(--text-muted);">${row.losses}</td>
+                          <td style="text-align: center; font-weight: 600; color: var(--accent);">${row.pct.toFixed(1)}%</td>
+                          <td style="text-align: right; font-weight: bold; font-variant-numeric: tabular-nums;">${row.total_pf.toFixed(2)}</td>
+                      </tr>
+                  `;
+              });
+  
+              // 3. Populating the High-Impact All-Time Record Cards Box
+              const recordsGrid = document.getElementById("recordsGrid");
+              recordsGrid.innerHTML = "";
+  
+              // Transform raw object configurations to displayable array lists
+              const recs = data.records;
+              const recordsList = [
+                  { title: "Highest Single Game Score", val: recs.highest_game_score.value, meta: recs.highest_game_score.manager + " (" + recs.highest_game_score.year + ")" },
+                  { title: "Lowest Single Game Score", val: recs.lowest_game_score.value, meta: recs.lowest_game_score.manager + " (" + recs.lowest_game_score.year + ")" },
+                  { title: "Most Regular Season Points (Season)", val: recs.most_season_pf.value, meta: recs.most_season_pf.manager + " (" + recs.most_season_pf.year + ")" },
+                  { title: "Most Regular Season Wins (Season)", val: recs.most_season_wins.value + " Wins", meta: recs.most_season_wins.manager + " (" + recs.most_season_wins.year + ")" }
+              ];
+  
+              recordsList.forEach(r => {
+                  recordsGrid.innerHTML += `
+                      <div class="record-box">
+                          <h3>${r.title}</h3>
+                          <div class="record-value">${r.val}</div>
+                          <div class="record-meta">${r.meta}</div>
+                      </div>
+                  `;
+              });
+  
+          } catch (error) {
+              console.error("Failed to map league historic details:", error);
+          }
+      }
+  
+      // Initialize logic on page load
+      window.addEventListener('DOMContentLoaded', loadHistoryData);
+  </script>
+
+</body>
+</html>
