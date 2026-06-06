@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>League Dashboard</title>
+<title>Flip Off Whatnot - League Dashboard</title>
 
 <style>
 body {
@@ -126,7 +126,10 @@ async function loadLeague() {
         const points =
             team.settings.fpts +
             team.settings.fpts_decimal/100;
-
+        
+    if points == "NaN" {
+        points = 0
+    }
         standingsBody.innerHTML += `
             <tr>
                 <td>${ownerMap[team.owner_id]}</td>
