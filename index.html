@@ -127,7 +127,7 @@ async function loadLeague() {
             team.settings.fpts +
             team.settings.fpts_decimal/100;
         
-        if (points === "Null") {
+        if (points === "NaN") {
             let points = 0;
         }
         standingsBody.innerHTML += `
