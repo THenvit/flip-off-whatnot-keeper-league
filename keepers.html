@@ -3,156 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keeper Costs Dashboard</title>
     <style>
-      :root {
-          --bg-color: #f4f6f9;
-          --card-bg: #ffffff;
-          --text-color: #333333;
-          --border-color: #dddddd;
-          --primary-color: #2c3e50;
-          --success-color: #27ae60;
-          --danger-color: #c0392b;
-          --info-color: #2980b9;
-          --neutral-color: #7f8c8d;
-      }
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #1e3a8a;
+            --accent: #3b82f6;
+            --success-color: #16a34a;
+            --danger-color: #dc2626;
+            --info-color: #2563eb;
+            --neutral-color: #64748b;
+        }
+    
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding-top: 60px; /* Essential offset for the locked navigation bar */
+        }
+    
+        /* Locked Fixed Navigation Bar */
+        .nav-bar {
+            background: #0f172a;
+            padding: 0 20px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    
+        .nav-bar a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+    
+        .nav-bar a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+    
+        .nav-bar a.active {
+            color: #ffffff;
+            background: var(--accent);
+        }
+    
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+    
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 25px;
+        }
+    
+        .controls-card {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid var(--border-color);
+        }
+    
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+    
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+    
+        select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            min-width: 250px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+    
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+    
+        th {
+            background-color: #f8fafc;
+            color: #0f172a;
+            padding: 14px 16px;
+            font-weight: bold; /* Bolded table headers */
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+        }
+    
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+    
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+    
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            min-width: 55px;
+        }
+    
+        .badge-eligible {
+            background-color: #e8f8f5;
+            color: var(--success-color);
+        }
+    
+        .badge-ineligible {
+            background-color: #fdedec;
+            color: var(--danger-color);
+        }
+    
+        .badge-rookie-yes {
+            background-color: #eaf2f8;
+            color: var(--info-color);
+        }
+    
+        .badge-rookie-no {
+            background-color: #f2f4f4;
+            color: var(--neutral-color);
+        }
+    
+        .text-danger {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+    
+        /* Highlights the first column (Fantasy Owner) and creates a professional grid border */
+        td:first-child {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: var(--primary);
+            border-right: 2px solid #eaedf2;
+        }
+    </style>
 
-      body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-          background-color: var(--bg-color);
-          color: var(--text-color);
-          margin: 0;
-          padding: 20px;
-      }
-
-      .container {
-          max-width: 1100px;
-          margin: 0 auto;
-      }
-
-      h1 {
-          color: var(--primary-color);
-          margin-bottom: 20px;
-      }
-
-      .controls-card {
-          background: var(--card-bg);
-          padding: 15px 20px;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          margin-bottom: 25px;
-          display: flex;
-          gap: 20px;
-          align-items: center;
-          flex-wrap: wrap;
-      }
-
-      .control-group {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-      }
-  
-      label {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #666;
-      }
-  
-      select {
-          padding: 8px 12px;
-          border-radius: 4px;
-          border: 1px solid var(--border-color);
-          background-color: #fff;
-          min-width: 220px;
-          font-size: 0.95rem;
-      }
-  
-      .table-container {
-          background: var(--card-bg);
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          overflow-x: auto;
-      }
-  
-      table {
-          width: 100%;
-          border-collapse: collapse;
-          text-align: left;
-      }
-  
-      th {
-          background-color: var(--primary-color);
-          color: white;
-          padding: 12px 16px;
-          font-weight: 600;
-          font-size: 0.9rem;
-      }
-
-      td {
-          padding: 12px 16px;
-          border-bottom: 1px solid var(--border-color);
-          font-size: 0.95rem;
-      }
-  
-      tr:hover {
-          background-color: #f9fbfd;
-      }
-  
-      .badge {
-          display: inline-block;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 0.8rem;
-          font-weight: bold;
-          text-transform: uppercase;
-          text-align: center;
-          min-width: 45px;
-      }
-  
-      .badge-eligible {
-          background-color: #e8f8f5;
-          color: var(--success-color);
-      }
-  
-      .badge-ineligible {
-          background-color: #fdedec;
-          color: var(--danger-color);
-      }
-
-      /* Rookie Badge Style Extenders */
-      .badge-rookie-yes {
-          background-color: #eaf2f8;
-          color: var(--info-color);
-      }
-  
-      .badge-rookie-no {
-          background-color: #f2f4f4;
-          color: var(--neutral-color);
-      }
-  
-      .text-danger {
-          color: var(--danger-color);
-          font-weight: bold;
-      }
-  
-      td:first-child {
-          background-color: #f8fafc;
-          font-weight: 600;
-          color: var(--primary-color);
-          border-right: 2px solid #eaedf2;
-      }
-  </style>
-
+    <title>Keeper Costs Dashboard</title>
 </head>
 <body>
     
- <div style="margin-bottom:20px;">
-    <a href="index.html">Home Page</a> |
-    <a href="keepers.html">Keeper Tracker</a> |
-    <a href="standings.html">Standings</a> |
-    <a href="rules.html">League Rules</a> |
+<!-- Pinned Navigation Header Bar -->
+<div class="nav-bar">
+    <a href="index.html">Home Page</a>
+    <a href="keepers.html" class="active">Keeper Tracker</a>
+    <a href="standings.html">Standings</a>
+    <a href="rules.html">League Rules</a>
     <a href="team-stat-page.html">Team Rosters</a>
+    <a href="history.html">League History</a>
 </div>
     
 <div class="container">
@@ -195,10 +244,11 @@
     let LEAGUE_ID = ""; 
     let globalProcessedPlayers = [];
     let userMap = {};
+    let fullDisplayMap = {}; // Pair custom metadata team profiles with handles
     let draftHistoryMap = {}; 
-    let rookieIdsSet = new Set(); // Fast lookup set for rookie compliance checking
+    let rookieIdsSet = new Set();
 
-    // 1. Core Rule Engine
+    // 1. Keeper Mathematical Rule Engine
     function calculateKeeperCost(playerObj, keeperCount, sleeperId) {
         const historyRecord = draftHistoryMap[sleeperId];
         const draftRound = (historyRecord && historyRecord.draft_round !== null) ? historyRecord.draft_round : null;
@@ -229,7 +279,6 @@
             }
         }
 
-        // Checks cross-reference state directly from the parsed Set array
         const isRookie = rookieIdsSet.has(sleeperId.toString());
 
         return {
@@ -244,7 +293,7 @@
         };
     }
 
-    // 2. Data Initialization Engine 
+    // 2. Data Initialization Engine
     async function loadDashboardData() {
         try {
             document.getElementById("loadingStatus").textContent = "Loading configuration...";
@@ -260,12 +309,11 @@
             document.getElementById("loadingStatus").textContent = "Loading history and Sleeper data...";
 
             const historyUrl = "roster-history.json";
-            const rookiesUrl = "rookies.json"; // Fetches the new rookies database asset
+            const rookiesUrl = "rookies.json";
             const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
             const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
             const masterPlayersUrl = 'public/players.json'; 
 
-            // Fire 5 data assets concurrently
             const [historyRes, rookiesRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
                 fetch(historyUrl),
                 fetch(rookiesUrl),
@@ -280,41 +328,37 @@
             const rosters = await rostersRes.json();
             const masterPlayers = await masterPlayersRes.json();
 
-            // Populate the lookup list string values into memory 
-            //  Safer Fixed Version: Handles both Object keys and Flat Arrays
+            // Populate Rookie Validation Set safely across formatting types
             rookieIdsSet.clear();
-            
             if (Array.isArray(rookiesData)) {
-                // If it's a standard array [...]
                 rookiesData.forEach(item => {
-                    if (item.sleeper_id) {
-                        rookieIdsSet.add(item.sleeper_id.toString());
-                    }
+                    if (item.sleeper_id) rookieIdsSet.add(item.sleeper_id.toString());
                 });
             } else if (rookiesData && typeof rookiesData === 'object') {
-                // If it's structured as an object { "12527": { name: "..." } } or with player IDs as keys
                 Object.keys(rookiesData).forEach(key => {
-                    const item = rookiesData[key];
-                    // If the sleeper ID is the key itself, add the key. Otherwise, check for a sleeper_id property.
-                    const idToAdd = item.sleeper_id || key;
-                    if (idToAdd) {
-                        rookieIdsSet.add(idToAdd.toString());
-                    }
+                    const idToAdd = rookiesData[key].sleeper_id || key;
+                    if (idToAdd) rookieIdsSet.add(idToAdd.toString());
                 });
             }
 
-
-            // Establish owner username profiles 
-            users.forEach(u => {
-                userMap[u.user_id] = u.display_name || u.username;
+            // Establish full parenthetical display name strings
+            users.forEach(user => {
+                const userName = user.display_name || user.username || "Unknown Owner";
+                userMap[user.user_id] = userName;
+                
+                if (user.metadata && user.metadata.team_name) {
+                    fullDisplayMap[user.user_id] = user.metadata.team_name + " (" + userName + ")";
+                } else {
+                    fullDisplayMap[user.user_id] = userName;
+                }
             });
 
             const teamSelect = document.getElementById("teamFilter");
             globalProcessedPlayers = [];
 
-            // Process rosters and format individual player statuses
+            // Process team listings and load choices into the table views
             rosters.forEach(roster => {
-                const ownerName = userMap[roster.owner_id] || ('Team ' + roster.roster_id);
+                const ownerName = fullDisplayMap[roster.owner_id] || ('Team ' + roster.roster_id);
                 
                 const option = document.createElement("option");
                 option.value = roster.roster_id;
@@ -348,7 +392,7 @@
         }
     }
 
-    // 3. UI Display Controller
+    // 3. UI Table Generation Engine
     function renderTable() {
         const selectedTeam = document.getElementById("teamFilter").value;
         const tbody = document.getElementById("keeperTableBody");
@@ -365,7 +409,6 @@
             const badgeText = p.eligible ? "Eligible" : "Ineligible";
             const costDisplayClass = p.eligible ? "" : "text-danger";
 
-            // Determine Rookie badge classes
             const rookieBadgeClass = p.isRookie ? "badge-rookie-yes" : "badge-rookie-no";
             const rookieBadgeText = p.isRookie ? "Yes" : "No";
 
@@ -384,7 +427,6 @@
         });
     }
 
-    // Initialize application logic
     window.addEventListener('DOMContentLoaded', loadDashboardData);
 </script>
 
