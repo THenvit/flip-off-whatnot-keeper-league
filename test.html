@@ -169,6 +169,7 @@
     }
 
     /* Position pills styling */
+    /* Position pills styling (Updated Colors) */
     .pos-pill {
         display: inline-block;
         padding: 2px 6px;
@@ -177,14 +178,28 @@
         font-weight: bold;
         color: white;
         text-align: center;
-        min-width: 28px;
+        min-width: 32px;
     }
-    .pos-QB { background-color: #e74c3c; }
-    .pos-RB { background-color: #2ecc71; }
-    .pos-WR { background-color: #3498db; }
-    .pos-TE { background-color: #f1c40f; color: #333; }
-    .pos-K  { background-color: #9b59b6; }
-    .pos-DEF{ background-color: #7f8c8d; }
+    .pos-QB  { background-color: #dc2626; } /* Crisp Red */
+    .pos-RB  { background-color: #2563eb; } /* Crisp Blue */
+    .pos-WR  { background-color: #16a34a; } /* Crisp Green */
+    .pos-TE  { background-color: #ea580c; } /* Warm Orange/Yellow */
+    .pos-K   { background-color: #7c3aed; } /* Purple */
+    .pos-DEF { background-color: #4b5563; } /* Slate Gray */
+    .pos-BN  { background-color: #64748b; } /* Bench Tag Color */
+
+    /* Divider row between starters and bench */
+    .bench-divider {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: center;
+        padding: 6px 16px !important;
+    }
+
 </style>
 
 </head>
@@ -231,6 +246,7 @@
 
 
 <script>
+// Global variable loaded dynamically from config.json
 let LEAGUE_ID = "";
 
 // Helper array to sort roster tables logically by starting positional priority
@@ -238,6 +254,7 @@ const positionOrder = ["QB", "RB", "WR", "TE", "K", "DEF"];
 
 async function loadLeague() {
     try {
+        // 1. Load the central configuration file first
         const configRes = await fetch("config.json");
         const configData = await configRes.json();
         LEAGUE_ID = configData.LEAGUE_ID;
@@ -246,9 +263,11 @@ async function loadLeague() {
             throw new Error("LEAGUE_ID missing from config.json");
         }
 
-        const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
-        const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
-        const masterPlayersUrl = 'public/players.json';
+        // 2. Construct exact API endpoints securely using standard concatenation
+        const baseUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID;
+        const usersUrl = baseUrl + '/users';
+        const rostersUrl = baseUrl + '/rosters';
+        const masterPlayersUrl = 'public/players.json'; 
 
         const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
             fetch(usersUrl),
@@ -260,7 +279,7 @@ async function loadLeague() {
         const rosters = await rostersRes.json();
         const players = await masterPlayersRes.json();
 
-        // 1. Double Mapping Layer: Stores raw names AND formatted custom combos
+        // 3. Establish owner username maps and combined display titles
         const rawOwnerMap = {};
         const fullDisplayMap = {};
 
@@ -275,12 +294,14 @@ async function loadLeague() {
             }
         });
 
+        // 4. Sort standings by total points scored
         rosters.sort((a,b) => {
             const scoreA = (a.settings?.fpts || 0) + ((a.settings?.fpts_decimal || 0) / 100);
             const scoreB = (b.settings?.fpts || 0) + ((b.settings?.fpts_decimal || 0) / 100);
             return scoreB - scoreA;
         });
 
+        // 5. Render the Standings Table
         const standingsBody = document.querySelector("#standings tbody");
         standingsBody.innerHTML = "";
 
@@ -302,30 +323,40 @@ async function loadLeague() {
             `;
         });
 
+        // 6. Render the Redesigned Depth-Chart Roster Cards
         const rosterContainer = document.getElementById("rosters");
         rosterContainer.innerHTML = "";
 
         rosters.forEach(team => {
-            const rosterPlayers = team.players || [];
             const customDisplayName = fullDisplayMap[team.owner_id] || ("Team " + team.roster_id);
-
-            // 2. Map full details and filter out dead data slots
-            let parsedPlayersList = rosterPlayers
+            
+            const starterIds = team.starters || [];
+            const allPlayerIds = team.players || [];
+            
+            // Map full player data objects from your local cron job file cache
+            let startersList = starterIds.map(id => players[id]).filter(p => p !== undefined);
+            
+            // Isolate bench players by excluding active starting slot IDs
+            let benchList = allPlayerIds
+                .filter(id => !starterIds.includes(id))
                 .map(id => players[id])
                 .filter(p => p !== undefined);
 
-            // 3. Positional sorting alignment hierarchy loop
-            parsedPlayersList.sort((a, b) => {
+            // Positional sorting comparator function
+            const sortPositions = (a, b) => {
                 let indexA = positionOrder.indexOf(a.position);
                 let indexB = positionOrder.indexOf(b.position);
                 if (indexA === -1) indexA = 99;
                 if (indexB === -1) indexB = 99;
                 return indexA - indexB;
-            });
+            };
 
-            // 4. Generate structured nested micro-tables
+            startersList.sort(sortPositions);
+            benchList.sort(sortPositions);
+
+            // Generate HTML markup strings for starter lists
             let playerRowsHtml = "";
-            parsedPlayersList.slice(0, 25).forEach(p => {
+            startersList.forEach(p => {
                 const posClass = "pos-" + (p.position || "DEF");
                 playerRowsHtml += `
                     <tr>
@@ -336,6 +367,27 @@ async function loadLeague() {
                 `;
             });
 
+            // Append Bench Divider and calculate bench player elements
+            if (benchList.length > 0) {
+                playerRowsHtml += `
+                    <tr>
+                        <td colspan="3" class="bench-divider">Bench Players</td>
+                    </tr>
+                `;
+                
+                benchList.forEach(p => {
+                    const posClass = "pos-" + (p.position || "DEF");
+                    playerRowsHtml += `
+                        <tr>
+                            <td style="width: 50px;"><span class="pos-pill ${posClass}">${p.position || "DEF"}</span></td>
+                            <td style="color: #4b5563;">${p.full_name}</td>
+                            <td style="text-align: right; color: var(--text-muted); font-size: 0.8rem;">${p.team || "FA"}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Inject the complete table assembly into your grid layout
             rosterContainer.innerHTML += `
                 <div class="team-roster-box">
                     <div class="team-roster-header">
@@ -343,7 +395,7 @@ async function loadLeague() {
                     </div>
                     <table class="roster-mini-table">
                         <tbody>
-                            ${playerRowsHtml || '<tr><td colspan="3">No Players Ristered</td></tr>'}
+                            ${playerRowsHtml || '<tr><td colspan="3">No Players Rostered</td></tr>'}
                         </tbody>
                     </table>
                 </div>
@@ -354,8 +406,10 @@ async function loadLeague() {
     }
 }
 
+// Initial engine execution bootstrap and auto-refresh intervals
 loadLeague();
 setInterval(loadLeague, 300000);
 </script>
+
 </body>
 </html>
