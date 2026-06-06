@@ -12,8 +12,6 @@
             --border-color: #e2e8f0;
             --primary: #1e3a8a;
             --accent: #3b82f6;
-            --gold: #f59e0b;
-            --sacko: #9a3412;
         }
     
         body {
@@ -21,7 +19,7 @@
             background: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding-top: 60px;
+            padding-top: 60px; /* Essential offset value for locked nav bar positioning */
         }
     
         .nav-bar {
@@ -67,7 +65,6 @@
             margin-bottom: 25px;
         }
     
-        /* Tab Switcher Styling */
         .tab-menu {
             display: flex;
             gap: 10px;
@@ -98,7 +95,6 @@
             background: var(--primary);
         }
     
-        /* Dynamic View Management */
         .history-view {
             display: none;
         }
@@ -125,7 +121,6 @@
             padding-bottom: 10px;
         }
     
-        /* Table Formatting */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -146,7 +141,6 @@
             border-bottom: 1px solid var(--border-color);
         }
     
-        /* Champions Row Component Card */
         .champ-row {
             display: flex;
             align-items: center;
@@ -169,7 +163,6 @@
             font-size: 0.95rem;
         }
     
-        /* Records Grid Box Panel cards */
         .records-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -211,7 +204,7 @@
 </head>
 <body>
 
-<!-- Pinned Navigation Header Bar -->
+<!-- Locked Pinned Navigation Header Bar -->
 <div class="nav-bar">
     <a href="index.html">Home Page</a>
     <a href="keepers.html">Keeper Tracker</a>
@@ -224,20 +217,18 @@
 <div class="history-container">
     <h1>📜 League Record Book & History</h1>
 
-    <!-- Interactive View Tabs -->
+    <!-- Interactive View Tabs Layout -->
     <div class="tab-menu">
         <button class="tab-btn active" onclick="switchView('champs')">🏆 Hall of Fame</button>
         <button class="tab-btn" onclick="switchView('leaderboard')">📊 All-Time Leaderboard</button>
         <button class="tab-btn" onclick="switchView('records')">👑 Record Book</button>
     </div>
 
-    <!-- VIEW 1: CHAMPIONS WALL -->
+    <!-- VIEW 1: CHAMPIONS TIMELINE -->
     <div id="view-champs" class="history-view active-view">
         <div class="card">
             <h2>League Champions Timeline</h2>
-            <div id="champsTimeline">
-                <!-- Populated via JS -->
-            </div>
+            <div id="champsTimeline"></div>
         </div>
     </div>
 
@@ -256,9 +247,7 @@
                             <th style="text-align: right;">Total PF</th>
                         </tr>
                     </thead>
-                    <tbody id="leaderboardBody">
-                        <!-- Populated via JS -->
-                    </tbody>
+                    <tbody id="leaderboardBody"></tbody>
                 </table>
             </div>
         </div>
@@ -266,96 +255,149 @@
 
     <!-- VIEW 3: LEAGUE RECORD BOOK -->
     <div id="view-records" class="history-view">
-        <div class="records-grid" id="recordsGrid">
-            <!-- Populated via JS -->
-        </div>
+        <div class="records-grid" id="recordsGrid"></div>
     </div>
 </div>
-  <script>
-      // Tab switching engine controller
-      function switchView(viewName) {
-          // Clear all active views and states
-          document.querySelectorAll('.history-view').forEach(v => v.classList.remove('active-view'));
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  
-          // Toggle selected elements
-          document.getElementById('view-' + viewName).classList.add('active-view');
-          event.currentTarget.classList.add('active');
-      }
-  
-      // Load metrics from local central league history repository asset file
-      async function loadHistoryData() {
-          try {
-              const response = await fetch("league-history.json");
-              const data = await response.json();
-  
-              // 1. Populating the Champions Timeline Wall
-              const champsContainer = document.getElementById("champsTimeline");
-              champsContainer.innerHTML = "";
-              
-              data.champions.forEach(c => {
-                  champsContainer.innerHTML += `
-                      <div class="champ-row">
-                          <div class="champ-year">${c.year}</div>
-                          <div class="champ-details">
-                              🏆 <strong>${c.winner}</strong> (${c.team_name}) <br>
-                              <span style="color: var(--text-muted); font-size: 0.85rem;">Runner Up: ${c.runner_up} | 🚽 Sacko: ${c.sacko || 'N/A'}</span>
-                          </div>
-                      </div>
-                  `;
-              });
-  
-              // 2. Populating the All-Time Cumulative Leaderboard Table
-              const leaderboardBody = document.getElementById("leaderboardBody");
-              leaderboardBody.innerHTML = "";
-  
-              // Sort managers automatically by Win Percentage
-              let sortedLeaderboard = [...data.all_time_leaderboard];
-              sortedLeaderboard.sort((a, b) => b.pct - a.pct);
-  
-              sortedLeaderboard.forEach(row => {
-                  leaderboardBody.innerHTML += `
-                      <tr>
-                          <td><strong>${row.manager}</strong></td>
-                          <td style="text-align: center; font-weight: 600;">${row.wins}</td>
-                          <td style="text-align: center; color: var(--text-muted);">${row.losses}</td>
-                          <td style="text-align: center; font-weight: 600; color: var(--accent);">${row.pct.toFixed(1)}%</td>
-                          <td style="text-align: right; font-weight: bold; font-variant-numeric: tabular-nums;">${row.total_pf.toFixed(2)}</td>
-                      </tr>
-                  `;
-              });
-  
-              // 3. Populating the High-Impact All-Time Record Cards Box
-              const recordsGrid = document.getElementById("recordsGrid");
-              recordsGrid.innerHTML = "";
-  
-              // Transform raw object configurations to displayable array lists
-              const recs = data.records;
-              const recordsList = [
-                  { title: "Highest Single Game Score", val: recs.highest_game_score.value, meta: recs.highest_game_score.manager + " (" + recs.highest_game_score.year + ")" },
-                  { title: "Lowest Single Game Score", val: recs.lowest_game_score.value, meta: recs.lowest_game_score.manager + " (" + recs.lowest_game_score.year + ")" },
-                  { title: "Most Regular Season Points (Season)", val: recs.most_season_pf.value, meta: recs.most_season_pf.manager + " (" + recs.most_season_pf.year + ")" },
-                  { title: "Most Regular Season Wins (Season)", val: recs.most_season_wins.value + " Wins", meta: recs.most_season_wins.manager + " (" + recs.most_season_wins.year + ")" }
-              ];
-  
-              recordsList.forEach(r => {
-                  recordsGrid.innerHTML += `
-                      <div class="record-box">
-                          <h3>${r.title}</h3>
-                          <div class="record-value">${r.val}</div>
-                          <div class="record-meta">${r.meta}</div>
-                      </div>
-                  `;
-              });
-  
-          } catch (error) {
-              console.error("Failed to map league historic details:", error);
-          }
-      }
-  
-      // Initialize logic on page load
-      window.addEventListener('DOMContentLoaded', loadHistoryData);
-  </script>
+<script>
+    // Tab menu display switching loop engine
+    function switchView(viewName) {
+        document.querySelectorAll('.history-view').forEach(v => v.classList.remove('active-view'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + viewName).classList.add('active-view');
+        event.currentTarget.classList.add('active');
+    }
+
+    let cumulativeStats = {}; 
+    let allTimeRecords = {
+        highest_season_pf: { value: 0, manager: "N/A", year: "N/A" },
+        most_season_wins: { value: 0, manager: "N/A", year: "N/A" }
+    };
+
+    // Automated Backwards Loop Historical Traversal Engine
+    async function processLeagueHistory() {
+        try {
+            document.getElementById("champsTimeline").textContent = "Loading configuration...";
+
+            const configRes = await fetch("config.json");
+            const configData = await configRes.json();
+            let currentLeagueId = configData.LEAGUE_ID;
+
+            const historyMetadataRes = await fetch("league-history.json");
+            const historyMetadata = await historyMetadataRes.json();
+
+            let leagueIdsToProcess = [];
+            let yearCursor = 2026; // Set current live system runtime year loop benchmark
+
+            document.getElementById("champsTimeline").textContent = "Traversing historical chains across seasons...";
+
+            // Loop backwards dynamically utilizing Sleeper's native linked property chain
+            while (currentLeagueId && currentLeagueId !== "0" && yearCursor >= 2024) {
+                leagueIdsToProcess.push({ id: currentLeagueId, year: yearCursor });
+                
+                const leagueDetails = await fetch('https://api.sleeper.app/v1/league/' + currentLeagueId).then(r => r.json());
+                currentLeagueId = leagueDetails.previous_league_id;
+                yearCursor--;
+            }
+
+            // Loop through gathered season IDs and aggregate statistics
+            for (const item of leagueIdsToProcess) {
+                const [users, rosters] = await Promise.all([
+                    fetch('https://api.sleeper.app/v1/league/' + item.id + '/users').then(r => r.json()),
+                    fetch('https://api.sleeper.app/v1/league/' + item.id + '/rosters').then(r => r.json())
+                ]);
+
+                let localUserMap = {};
+                users.forEach(u => {
+                    localUserMap[u.user_id] = u.display_name || u.username;
+                });
+
+                rosters.forEach(team => {
+                    const managerName = localUserMap[team.owner_id] || "Unknown Manager";
+                    const wins = team.settings?.wins || 0;
+                    const losses = team.settings?.losses || 0;
+                    const pf = (team.settings?.fpts || 0) + ((team.settings?.fpts_decimal || 0) / 100);
+
+                    // A. Aggregate Regular Season Career Performance Metrics
+                    if (!cumulativeStats[managerName]) {
+                        cumulativeStats[managerName] = { wins: 0, losses: 0, total_pf: 0 };
+                    }
+                    cumulativeStats[managerName].wins += wins;
+                    cumulativeStats[managerName].losses += losses;
+                    cumulativeStats[managerName].total_pf += pf;
+
+                    // B. Evaluate Single Season Benchmark High Records
+                    if (pf > allTimeRecords.highest_season_pf.value) {
+                        allTimeRecords.highest_season_pf = { value: pf, manager: managerName, year: item.year };
+                    }
+                    if (wins > allTimeRecords.most_season_wins.value) {
+                        allTimeRecords.most_season_wins = { value: wins, manager: managerName, year: item.year };
+                    }
+                });
+            }
+
+            // 1. Render View 1: Hall of Fame Timeline Card Rows
+            const champsContainer = document.getElementById("champsTimeline");
+            champsContainer.innerHTML = "";
+            Object.keys(historyMetadata).sort((a,b) => b - a).forEach(year => {
+                const c = historyMetadata[year];
+                champsContainer.innerHTML += `
+                    <div class="champ-row">
+                        <div class="champ-year">${year}</div>
+                        <div class="champ-details">
+                            🏆 <strong>${c.winner}</strong> (${c.team_name}) <br>
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">Runner Up: ${c.runner_up} | 🚽 Sacko: ${c.sacko || 'N/A'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 2. Render View 2: All-Time Standings Leaderboard Table rows
+            const leaderboardBody = document.getElementById("leaderboardBody");
+            leaderboardBody.innerHTML = "";
+            
+            let sortedManagers = Object.keys(cumulativeStats).map(name => {
+                let m = cumulativeStats[name];
+                let totalGames = m.wins + m.losses;
+                let pct = totalGames > 0 ? (m.wins / totalGames) * 100 : 0;
+                return { name, wins: m.wins, losses: m.losses, pct, total_pf: m.total_pf };
+            }).sort((a, b) => b.pct - a.pct);
+
+            sortedManagers.forEach(m => {
+                leaderboardBody.innerHTML += `
+                    <tr>
+                        <td><strong>${m.name}</strong></td>
+                        <td style="text-align: center; font-weight: 600;">${m.wins}</td>
+                        <td style="text-align: center; color: var(--text-muted);">${m.losses}</td>
+                        <td style="text-align: center; font-weight: 600; color: var(--accent);">${m.pct.toFixed(1)}%</td>
+                        <td style="text-align: right; font-weight: bold; font-variant-numeric: tabular-nums;">${m.total_pf.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            // 3. Render View 3: High-Impact Record Dashboard Blocks
+            const recordsGrid = document.getElementById("recordsGrid");
+            recordsGrid.innerHTML = `
+                <div class="record-box">
+                    <h3>Most Points For (Season)</h3>
+                    <div class="record-value">${allTimeRecords.highest_season_pf.value.toFixed(2)}</div>
+                    <div class="record-meta">${allTimeRecords.highest_season_pf.manager} (${allTimeRecords.highest_season_pf.year})</div>
+                </div>
+                <div class="record-box">
+                    <h3>Most Wins (Season)</h3>
+                    <div class="record-value">${allTimeRecords.most_season_wins.value} Wins</div>
+                    <div class="record-meta">${allTimeRecords.most_season_wins.manager} (${allTimeRecords.most_season_wins.year})</div>
+                </div>
+            `;
+
+        } catch (error) {
+            console.error("History Engine Parse Exception Error:", error);
+            document.getElementById("champsTimeline").textContent = "Error loading automated historical league data records.";
+        }
+    }
+
+    // Trigger loader engine loop on page initialization
+    window.addEventListener('DOMContentLoaded', processLeagueHistory);
+</script>
 
 </body>
 </html>
