@@ -92,7 +92,7 @@
     "position": "QB",
     "nfl_team": "DET",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 11,
     "keeper_count": 0
   },
   "3198": {
@@ -100,15 +100,15 @@
     "position": "RB",
     "nfl_team": "BAL",
     "roster_id": 9,
-    "draft_round": null,
-    "keeper_count": 0
+    "draft_round": 2,
+    "keeper_count": 1
   },
   "3214": {
     "name": "Hunter Henry",
     "position": "TE",
     "nfl_team": "NE",
     "roster_id": 9,
-    "draft_round": null,
+    "draft_round": 13,
     "keeper_count": 0
   },
   "3257": {
@@ -124,7 +124,7 @@
     "position": "QB",
     "nfl_team": "DAL",
     "roster_id": 12,
-    "draft_round": null,
+    "draft_round": 11,
     "keeper_count": 0
   },
   "4018": {
@@ -140,7 +140,7 @@
     "position": "RB",
     "nfl_team": "SF",
     "roster_id": 11,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "4035": {
@@ -180,7 +180,7 @@
     "position": "RB",
     "nfl_team": null,
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 13,
     "keeper_count": 0
   },
   "4137": {
@@ -204,7 +204,7 @@
     "position": "RB",
     "nfl_team": "MIN",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 6,
     "keeper_count": 0
   },
   "4217": {
@@ -212,7 +212,7 @@
     "position": "TE",
     "nfl_team": "SF",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 4,
     "keeper_count": 0
   },
   "4381": {
@@ -228,7 +228,7 @@
     "position": "RB",
     "nfl_team": null,
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 9,
     "keeper_count": 0
   },
   "4866": {
@@ -276,7 +276,7 @@
     "position": "WR",
     "nfl_team": "BUF",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 4,
     "keeper_count": 0
   },
   "4984": {
@@ -284,7 +284,7 @@
     "position": "QB",
     "nfl_team": "BUF",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "4993": {
@@ -308,7 +308,7 @@
     "position": "TE",
     "nfl_team": "PHI",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 13,
     "keeper_count": 0
   },
   "5045": {
@@ -324,7 +324,7 @@
     "position": "WR",
     "nfl_team": "PIT",
     "roster_id": 9,
-    "draft_round": null,
+    "draft_round": 3,
     "keeper_count": 0
   },
   "5850": {
@@ -332,15 +332,15 @@
     "position": "RB",
     "nfl_team": "GB",
     "roster_id": 8,
-    "draft_round": null,
-    "keeper_count": 0
+    "draft_round": 3,
+    "keeper_count": 1
   },
   "5859": {
     "name": "A.J. Brown",
     "position": "WR",
     "nfl_team": "NE",
     "roster_id": 11,
-    "draft_round": null,
+    "draft_round": 2,
     "keeper_count": 0
   },
   "5872": {
@@ -348,7 +348,7 @@
     "position": "WR",
     "nfl_team": null,
     "roster_id": 11,
-    "draft_round": null,
+    "draft_round": 7,
     "keeper_count": 0
   },
   "5892": {
@@ -380,7 +380,7 @@
     "position": "RB",
     "nfl_team": "TEN",
     "roster_id": 11,
-    "draft_round": null,
+    "draft_round": 5,
     "keeper_count": 0
   },
   "6130": {
@@ -404,7 +404,7 @@
     "position": "QB",
     "nfl_team": "CIN",
     "roster_id": 12,
-    "draft_round": null,
+    "draft_round": 3,
     "keeper_count": 0
   },
   "6783": {
@@ -428,7 +428,7 @@
     "position": "RB",
     "nfl_team": "CHI",
     "roster_id": 9,
-    "draft_round": null,
+    "draft_round": 5,
     "keeper_count": 0
   },
   "6794": {
@@ -436,7 +436,7 @@
     "position": "WR",
     "nfl_team": "MIN",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "6797": {
@@ -468,7 +468,7 @@
     "position": "RB",
     "nfl_team": "DEN",
     "roster_id": 9,
-    "draft_round": null,
+    "draft_round": 8,
     "keeper_count": 0
   },
   "6813": {
@@ -484,7 +484,7 @@
     "position": "WR",
     "nfl_team": "PIT",
     "roster_id": 11,
-    "draft_round": null,
+    "draft_round": 8,
     "keeper_count": 0
   },
   "6865": {
@@ -500,7 +500,7 @@
     "position": "QB",
     "nfl_team": "PHI",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 2,
     "keeper_count": 0
   },
   "6920": {
@@ -556,7 +556,7 @@
     "position": "WR",
     "nfl_team": "DEN",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 5,
     "keeper_count": 0
   },
   "7543": {
@@ -572,7 +572,7 @@
     "position": "WR",
     "nfl_team": "DET",
     "roster_id": 9,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "7553": {
@@ -580,7 +580,7 @@
     "position": "TE",
     "nfl_team": "ATL",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 8,
     "keeper_count": 0
   },
   "7564": {
@@ -588,7 +588,7 @@
     "position": "WR",
     "nfl_team": "CIN",
     "roster_id": 12,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "7567": {
@@ -604,15 +604,15 @@
     "position": "WR",
     "nfl_team": "HOU",
     "roster_id": 7,
-    "draft_round": null,
-    "keeper_count": 0
+    "draft_round": 3,
+    "keeper_count": 1
   },
   "7588": {
     "name": "Javonte Williams",
     "position": "RB",
     "nfl_team": "DAL",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 9,
     "keeper_count": 0
   },
   "7607": {
@@ -636,7 +636,7 @@
     "position": "TE",
     "nfl_team": "DAL",
     "roster_id": 11,
-    "draft_round": null,
+    "draft_round": 11,
     "keeper_count": 0
   },
   "8111": {
@@ -684,8 +684,8 @@
     "position": "TE",
     "nfl_team": "ARI",
     "roster_id": 12,
-    "draft_round": null,
-    "keeper_count": 0
+    "draft_round": 5,
+    "keeper_count": 1
   },
   "8132": {
     "name": "Tyler Allgeier",
@@ -764,7 +764,7 @@
     "position": "RB",
     "nfl_team": "LAR",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 2,
     "keeper_count": 0
   },
   "8151": {
@@ -788,7 +788,7 @@
     "position": "RB",
     "nfl_team": "NYJ",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 3,
     "keeper_count": 0
   },
   "8167": {
@@ -804,7 +804,7 @@
     "position": "QB",
     "nfl_team": "SF",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 5,
     "keeper_count": 0
   },
   "8205": {
@@ -820,7 +820,7 @@
     "position": "RB",
     "nfl_team": "PIT",
     "roster_id": 12,
-    "draft_round": null,
+    "draft_round": 6,
     "keeper_count": 0
   },
   "8676": {
@@ -884,15 +884,15 @@
     "position": "WR",
     "nfl_team": "SEA",
     "roster_id": 10,
-    "draft_round": null,
-    "keeper_count": 0
+    "draft_round": 10,
+    "keeper_count": 1
   },
   "9493": {
     "name": "Puka Nacua",
     "position": "WR",
     "nfl_team": "LAR",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "9500": {
@@ -956,7 +956,7 @@
     "position": "WR",
     "nfl_team": "BAL",
     "roster_id": 9,
-    "draft_round": null,
+    "draft_round": 4,
     "keeper_count": 0
   },
   "10213": {
@@ -1004,7 +1004,7 @@
     "position": "TE",
     "nfl_team": "DET",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 5,
     "keeper_count": 0
   },
   "11435": {
@@ -1124,7 +1124,7 @@
     "position": "WR",
     "nfl_team": "CHI",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 7,
     "keeper_count": 0
   },
   "11624": {
@@ -1172,8 +1172,8 @@
     "position": "WR",
     "nfl_team": "JAX",
     "roster_id": 8,
-    "draft_round": null,
-    "keeper_count": 0
+    "draft_round": 7,
+    "keeper_count": 1
   },
   "11632": {
     "name": "Malik Nabers",
@@ -1268,7 +1268,7 @@
     "position": "RB",
     "nfl_team": "DEN",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 4,
     "keeper_count": 0
   },
   "12490": {
@@ -1300,7 +1300,7 @@
     "position": "WR",
     "nfl_team": "TEN",
     "roster_id": 7,
-    "draft_round": null,
+    "draft_round": 14,
     "keeper_count": 0
   },
   "12506": {
@@ -1316,7 +1316,7 @@
     "position": "RB",
     "nfl_team": "LAC",
     "roster_id": 12,
-    "draft_round": null,
+    "draft_round": 3,
     "keeper_count": 0
   },
   "12508": {
@@ -1340,7 +1340,7 @@
     "position": "WR",
     "nfl_team": "TB",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 6,
     "keeper_count": 0
   },
   "12517": {
@@ -1380,7 +1380,7 @@
     "position": "WR",
     "nfl_team": "CAR",
     "roster_id": 12,
-    "draft_round": null,
+    "draft_round": 4,
     "keeper_count": 0
   },
   "12527": {
@@ -1388,7 +1388,7 @@
     "position": "RB",
     "nfl_team": "LV",
     "roster_id": 10,
-    "draft_round": null,
+    "draft_round": 1,
     "keeper_count": 0
   },
   "12529": {
@@ -1396,7 +1396,7 @@
     "position": "RB",
     "nfl_team": "NE",
     "roster_id": 8,
-    "draft_round": null,
+    "draft_round": 2,
     "keeper_count": 0
   },
   "12530": {
