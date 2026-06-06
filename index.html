@@ -127,9 +127,9 @@ async function loadLeague() {
             team.settings.fpts +
             team.settings.fpts_decimal/100;
         
-    if points == "NaN" {
-        points = 0
-    }
+        if points == "Null" {
+            points = 0
+        }
         standingsBody.innerHTML += `
             <tr>
                 <td>${ownerMap[team.owner_id]}</td>
