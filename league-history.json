@@ -1,18 +1,14 @@
 {
-  "champions": [
-    { "year": 2025, "winner": "Chapmandraftchoke", "team_name": "Chapman About To Get Bofa", "runner_up": "91jchapman", "sacko": "Manager Name C" },
-    { "year": 2024, "winner": "Darknrahl", "team_name": "Team Darknrahl", "runner_up": "Chapmandraftchoke", "sacko": "SerrasCowboys" }
-  ],
-  "all_time_leaderboard": [
-    { "manager": "Manager Name A", "wins": 24, "losses": 18, "pct": 57.1, "total_pf": 5120.45 },
-    { "manager": "Manager Name B", "wins": 22, "losses": 20, "pct": 52.3, "total_pf": 4985.60 },
-    { "manager": "Manager Name C", "wins": 19, "losses": 23, "pct": 45.2, "total_pf": 4610.12 },
-    { "manager": "Manager Name D", "wins": 26, "losses": 16, "pct": 61.9, "total_pf": 5310.80 }
-  ],
-  "records": {
-    "highest_game_score": { "value": 182.40, "manager": "Manager Name D", "year": 2024 },
-    "lowest_game_score": { "value": 64.12, "manager": "Manager Name C", "year": 2025 },
-    "most_season_pf": { "value": 1945.82, "manager": "Manager Name D", "year": 2024 },
-    "most_season_wins": { "value": 12, "manager": "Manager Name A", "year": 2025 }
+  "2024": {
+    "winner": "Darknrahl2",
+    "team_name": "Team Darknrahl2",
+    "runner_up": "Chapmanchokeartist",
+    "sacko": "SerrasCowboys"
+  },
+  "2025": {
+    "winner": "Chapmanchokeartist",
+    "team_name": "Chapman About 2 Get Bofa",
+    "runner_up": "91JChapman",
+    "sacko": "Team 4"
   }
 }
