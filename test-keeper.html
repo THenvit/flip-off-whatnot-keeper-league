@@ -281,12 +281,28 @@
             const masterPlayers = await masterPlayersRes.json();
 
             // Populate the lookup list string values into memory 
+            //  Safer Fixed Version: Handles both Object keys and Flat Arrays
             rookieIdsSet.clear();
-            rookiesData.forEach(item => {
-                if (item.sleeper_id) {
-                    rookieIdsSet.add(item.sleeper_id.toString());
-                }
-            });
+            
+            if (Array.isArray(rookiesData)) {
+                // If it's a standard array [...]
+                rookiesData.forEach(item => {
+                    if (item.sleeper_id) {
+                        rookieIdsSet.add(item.sleeper_id.toString());
+                    }
+                });
+            } else if (rookiesData && typeof rookiesData === 'object') {
+                // If it's structured as an object { "12527": { name: "..." } } or with player IDs as keys
+                Object.keys(rookiesData).forEach(key => {
+                    const item = rookiesData[key];
+                    // If the sleeper ID is the key itself, add the key. Otherwise, check for a sleeper_id property.
+                    const idToAdd = item.sleeper_id || key;
+                    if (idToAdd) {
+                        rookieIdsSet.add(idToAdd.toString());
+                    }
+                });
+            }
+
 
             // Establish owner username profiles 
             users.forEach(u => {
