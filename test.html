@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flip Off Whatnot - League Dashboard</title>
+
+<style>
+    :root {
+        --bg-color: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --primary: #1e3a8a;
+        --accent: #3b82f6;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Professional Navigation Header Bar */
+    .nav-bar {
+        background: #0f172a;
+        padding: 12px 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-bar a {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-bar a:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-bar a.active {
+        color: #ffffff;
+        background: var(--accent);
+    }
+
+    /* Grid Layout Container */
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--border-color);
+    }
+
+    .card h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #0f172a;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    /* Balanced Standings Table View */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: #f8fafc;
+        color: var(--text-muted);
+        padding: 12px 16px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.95rem;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    .col-team {
+        text-align: left;
+        width: 50%;
+        color: var(--primary);
+    }
+
+    .col-record {
+        text-align: center;
+        width: 25%;
+        font-weight: 600;
+    }
+
+    .col-pf {
+        text-align: right;
+        width: 25%;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Modern Roster Grid System */
+    .roster {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .team-card {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--accent); /* Sleek design edge */
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .team-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-card h3 {
+        margin-top: 0;
+        margin-bottom: 14px;
+        font-size: 1.1rem;
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .team-card p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #334155;
+        margin: 0;
+    }
+</style>
+</head>
+
+<body>
+    
+<!-- Upgraded Navigation Bar -->
+<div class="nav-bar">
+    <a href="index.html" class="active">Home Page</a>
+    <a href="keepers.html">Keeper Tracker</a>
+    <a href="standings.html">Standings</a>
+    <a href="rules.html">League Rules</a>
+    <a href="team-stat-page.html">Team Rosters</a>
+</div>
+    
+<div class="dashboard-container">
+    <h1>🏈 Flip Off Whatnot League Dashboard</h1>
+
+    <!-- Fixed Standings Section -->
+    <div class="card">
+        <h2>Standings</h2>
+        <table id="standings">
+            <thead>
+                <tr>
+                    <th class="col-team">Team</th>
+                    <th class="col-record">Record</th>
+                    <th class="col-pf">PF</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Rosters Section -->
+    <div class="card">
+        <h2>Rosters</h2>
+        <div class="roster" id="rosters">
+            <!-- Populated via JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variable loaded dynamically from config.json
+let LEAGUE_ID = "";
+
+async function loadLeague() {
+    try {
+        const configRes = await fetch("config.json");
+        const configData = await configRes.json();
+        LEAGUE_ID = configData.LEAGUE_ID;
+
+        if (!LEAGUE_ID) {
+            throw new Error("LEAGUE_ID missing from config.json");
+        }
+
+        const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
+        const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
+        const masterPlayersUrl = 'public/players.json';
+
+        const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
+            fetch(usersUrl),
+            fetch(rostersUrl),
+            fetch(masterPlayersUrl)
+        ]);
+
+        const users = await usersRes.json();
+        const rosters = await rostersRes.json();
+        const players = await masterPlayersRes.json();
+
+        const ownerMap = {};
+
+        users.forEach(user => {
+            ownerMap[user.user_id] =
+                user.metadata?.team_name ||
+                user.display_name;
+        });
+
+        rosters.sort((a,b) => {
+            const scoreA = (a.settings?.fpts || 0) + ((a.settings?.fpts_decimal || 0) / 100);
+            const scoreB = (b.settings?.fpts || 0) + ((b.settings?.fpts_decimal || 0) / 100);
+            return scoreB - scoreA;
+        });
+
+        const standingsBody = document.querySelector("#standings tbody");
+        standingsBody.innerHTML = "";
+
+        rosters.forEach(team => {
+            const basePoints = team.settings?.fpts || 0;
+            const decimalPoints = team.settings?.fpts_decimal || 0;
+            const points = basePoints + (decimalPoints / 100);
+            
+            const wins = team.settings?.wins || 0;
+            const losses = team.settings?.losses || 0;
+            const ownerName = ownerMap[team.owner_id] || "Unknown Team";
+
+            standingsBody.innerHTML += `
+                <tr>
+                    <td class="col-team"><strong>${ownerName}</strong></td>
+                    <td class="col-record">${wins}-${losses}</td>
+                    <td class="col-pf"><strong>${points.toFixed(2)}</strong></td>
+                </tr>
+            `;
+        });
+
+        const rosterContainer = document.getElementById("rosters");
+        rosterContainer.innerHTML = "";
+
+        rosters.forEach(team => {
+            const rosterPlayers = team.players || [];
+            const ownerName = ownerMap[team.owner_id] || "Unknown Team";
+
+            // Restructured layout format for crisp roster list reading
+            const playerNames = rosterPlayers
+                .slice(0, 20)
+                .map(id => players[id]?.full_name || id)
+                .join(" &bull; "); // Clean bullet dividers instead of harsh breaks
+
+            rosterContainer.innerHTML += `
+                <div class="team-card">
+                    <h3>${ownerName}</h3>
+                    <p>${playerNames}</p>
+                </div>
+            `;
+        });
+    } catch (err) {
+        console.error("Failed to parse Sleeper league details:", err);
+    }
+}
+
+loadLeague();
+setInterval(loadLeague, 300000);
+</script>
+
+</body>
+</html>
