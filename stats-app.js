@@ -246,7 +246,7 @@ function renderDashboard(filterValue) {
     });
 }
 
-// Modal Functionality for Detailed Stats View
+// 5. Detail Stats Modal Controller (Fixed Crashes)
 function openModal(playerId) {
     const player = globalPlayersDb[playerId];
     if (!player) return;
@@ -263,7 +263,6 @@ function openModal(playerId) {
     const injuryElem = document.getElementById('modal-injury');
     const rankElem = document.getElementById('modal-rank');
     const projPprElem = document.getElementById('modal-proj-ppr');
-    const olderProjElem = document.getElementById('modal-proj'); 
 
     if (nameElem) nameElem.innerText = (player.first_name || '') + ' ' + (player.last_name || '');
     if (posElem) posElem.innerText = pos;
@@ -272,7 +271,6 @@ function openModal(playerId) {
     if (injuryElem) injuryElem.innerText = player.injury_status || 'Healthy';
     if (rankElem) rankElem.innerText = explicitRankText;
     if (projPprElem) projPprElem.innerText = projectedPPR;
-    if (olderProjElem) olderProjElem.innerText = projectedPPR;
 
     const overlay = document.getElementById('modal-overlay');
     const modal = document.getElementById('stats-modal');
@@ -286,6 +284,10 @@ function closeModal() {
     if (overlay) overlay.classList.remove('show');
     if (modal) modal.classList.remove('show');
 }
+
+// Boot up dashboard logic once DOM assets are parsed
+window.addEventListener('DOMContentLoaded', initDashboard);
+
 
 // Boot up dashboard logic once DOM assets are parsed
 window.addEventListener('DOMContentLoaded', initDashboard);
