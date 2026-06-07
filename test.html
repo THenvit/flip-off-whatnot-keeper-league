@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>League Standings & Playoff Odds - Flip Off Whatnot</title>
+    <title>Sleeper League Roster Dashboard - Team Rosters</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -13,9 +13,6 @@
             --border-color: #e2e8f0;
             --primary: #1e3a8a;
             --accent: #3b82f6;
-            --success-color: #16a34a;
-            --warning-color: #ea580c;
-            --danger-color: #dc2626;
         }
     
         body {
@@ -23,10 +20,10 @@
             background: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding-top: 60px; /* Offset spacing context for the fixed top navbar */
+            padding-top: 60px; /* Offset spacing for fixed top menu bar */
         }
     
-        /* 📱 FIXED MOBILE NAV BAR: Restructures links into a touch-swipe menu track */
+        /* 📱 FIXED MOBILE NAV BAR: Converts link paths into a swipeable horizonal list track */
         .nav-bar {
             background: #0f172a;
             padding: 0 10px;
@@ -46,7 +43,7 @@
         }
     
         .nav-bar::-webkit-scrollbar {
-            display: none; /* Hides standard system scrollbar tracks */
+            display: none;
         }
     
         .nav-bar a {
@@ -66,7 +63,7 @@
         }
     
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 15px auto;
             padding: 0 15px;
             box-sizing: border-box;
@@ -76,212 +73,241 @@
             font-size: 1.5rem;
             font-weight: 800;
             color: #0f172a;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
     
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
+        .status-message {
+            font-size: 14px;
+            color: var(--text-muted);
             margin-bottom: 20px;
+            font-style: italic;
+        }
+    
+        /* Filter Panel Control Card Container */
+        .controls-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
             width: 100%;
         }
     
-        .card h2 {
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+    
+        .control-group label {
+            font-weight: bold;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+    
+        .control-group select {
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            height: 44px; /* Standard optimized mobile touch dimensions */
+            color: var(--text-main);
+        }
+    
+        /* Team Section Blocks */
+        .team-section {
+            margin-bottom: 35px;
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+    
+        .team-title {
             font-size: 1.2rem;
             font-weight: 700;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
             margin-top: 0;
             margin-bottom: 15px;
-            color: #0f172a;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
+            word-break: break-word;
         }
     
-        .table-responsive-wrapper {
+        /* 📱 FLUID ROSTER GRID OVERRIDES */
+        .roster-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Default mobile single column stack */
+            gap: 12px;
             width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            border-radius: 6px;
         }
     
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px; /* Locks table from text-squishing inside phone viewports */
-        }
-    
-        th {
+        .player-card {
             background: #f8fafc;
-            color: #0f172a; /* Darkened header values */
-            padding: 14px 12px;
-            font-weight: bold; /* Bolded table headers */
-            font-size: 0.88rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid var(--border-color); /* Initial color edge accent */
+            box-sizing: border-box;
+            width: 100%;
+        }
+    
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            border-color: var(--accent);
+        }
+    
+        .player-name {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+    
+        .player-meta {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+    
+        /* Lineup Designation Badges */
+        .slot-badge {
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+        .badge-starter { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-bench { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+        .badge-taxi { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    
+        /* Injury Highlighting Stripe Rule Overrides */
+        .injury-out { border-left: 6px solid #ef4444 !important; background: #fef2f2 !important; }
+        .injury-questionable { border-left: 6px solid #eab308 !important; background: #fefce8 !important; }
+        .injury-ir { border-left: 6px solid #f97316 !important; background: #fff7ed !important; }
+        .injury-doubtful { border-left: 6px solid #ec4899 !important; background: #fdf2f8 !important; }
+    
+        /* Modal Styling System Layer overrides */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+        }
+        .stats-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 440px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 2001;
+            box-sizing: border-box;
+        }
+        .modal-header {
             border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
         }
+        .modal-title { font-size: 1.25rem; font-weight: bold; margin: 0; color: #0f172a; }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.92rem; }
+        .stat-value { font-weight: bold; color: var(--accent); }
+        .close-btn { background: #0f172a; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 0.95rem; margin-top: 15px; font-weight: bold; transition: background 0.2s; }
+        .close-btn:hover { background: #000; }
+        .show { display: block !important; }
     
-        td {
-            padding: 14px 12px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.95rem;
+        /* Media query upgrades for standard tablet/desktop viewport sizes */
+        @media(min-width: 580px) {
+            .controls-card { flex-direction: row; align-items: center; padding: 15px 20px; }
+            .control-group { width: auto; }
+            .control-group select { width: 300px; }
         }
-    
-        tr:hover td {
-            background-color: #f8fafc;
-        }
-    
-        /* Column Sizing and Alignments */
-        .col-rank { text-align: center; width: 10%; }
-        .col-team { text-align: left; width: 40%; color: var(--primary); }
-        .col-record { text-align: center; width: 15%; font-weight: 600; }
-        .col-pf { text-align: right; width: 15%; font-variant-numeric: tabular-nums; font-weight: 500; }
-        .col-odds { text-align: center; width: 20%; }
-    
-        /* High-Contrast Standings Odds Indicators */
-        .playoff-lock { color: var(--success-color); font-weight: bold; }
-        .playoff-bubble { color: var(--warning-color); font-weight: bold; }
-        .playoff-out { color: var(--danger-color); font-weight: bold; }
-    
-        @media(min-width: 680px) {
+        @media(min-width: 768px) {
             .container { margin: 30px auto; padding: 0 20px; }
             h1 { font-size: 1.8rem; }
-            .card { padding: 24px; }
+            .team-section { padding: 24px; }
+            .team-title { font-size: 1.4rem; }
+            .roster-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
         }
     </style>
 
 </head>
 <body>
  
-<!-- Pinned Navigation Header Bar (Responsive Mobile Swipe Menu) -->
+<!-- Locked Pinned Navigation Header Bar (Responsive Mobile Swipe Menu) -->
 <div class="nav-bar">
     <a href="index.html">Home Page</a>
     <a href="keepers.html">Keeper Tracker</a>
-    <a href="standings.html" class="active">Standings</a>
+    <a href="standings.html">Standings</a>
     <a href="rules.html">League Rules</a>
-    <a href="team-stat-page.html">Team Rosters</a>
+    <a href="team-stat-page.html" class="active">Team Rosters</a>
     <a href="history.html">League History</a>
 </div>
  
 <div class="container">
-    <h1>🏈 League Standings & Playoff Odds</h1>
+    <h1>🏈 Detailed Team Rosters</h1>
+    <div id="status" class="status-message">Initializing system datasets...</div>
     
-    <div class="card">
-        <h2>Current Standings</h2>
-        <!-- 📱 RESPONSIVE WRAPPER: Shields table margins from mobile screen boundaries -->
-        <div class="table-responsive-wrapper">
-            <table id="standingsTable">
-                <thead>
-                    <tr>
-                        <th class="col-rank">Rank</th>
-                        <th class="col-team">Team</th>
-                        <th class="col-record">Record</th>
-                        <th class="col-pf">Points For</th>
-                        <th class="col-odds">Playoff Odds</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Populated via JS -->
-                </tbody>
-            </table>
+    <!-- Dropdown for Team Selection -->
+    <div class="controls-card">
+        <div class="control-group">
+            <label for="team-select">Select View:</label>
+            <select id="team-select" disabled>
+                <option value="all">-- All Teams --</option>
+            </select>
         </div>
     </div>
+    
+    <!-- Container for Teams and Rosters -->
+    <div id="dashboard-container"></div>
+    
+    <!-- Stats Display Modal Trigger -->
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModal()"></div>
+    <div id="stats-modal" class="stats-modal">
+        <div class="modal-header">
+            <h2 id="modal-name" class="modal-title">Player Stats</h2>
+        </div>
+        <div class="stat-row"><span>Position:</span> <span id="modal-pos" class="stat-value">-</span></div>
+        <div class="stat-row"><span>Team:</span> <span id="modal-team" class="stat-value">-</span></div>
+        <div class="stat-row"><span>Status:</span> <span id="modal-status-txt" class="stat-value">-</span></div>
+        <div class="stat-row"><span>Injury Status:</span> <span id="modal-injury" class="stat-value">-</span></div>
+        <div class="stat-row"><span>Positional Ranking:</span> <span id="modal-rank" class="stat-value">-</span></div>
+        <div class="stat-row"><span>Projected Season PPR:</span> <span id="modal-proj-ppr" class="stat-value">-</span></div>
+        
+        <button class="close-btn" onclick="closeModal()">Close Details</button>
+    </div>
 </div>
-    <script>
-    // Global runtime league variable pulled dynamically from config.json
-    let LEAGUE_ID = "";
-    
-    async function loadStandings(){
-        try {
-            // 1. Fetch dynamic config.json requirements
-            const configRes = await fetch("config.json");
-            const configData = await configRes.json();
-            LEAGUE_ID = configData.LEAGUE_ID;
-    
-            if (!LEAGUE_ID) {
-                throw new Error("LEAGUE_ID variable missing from config.json.");
-            }
-    
-            // 2. Query data assets concurrently
-            const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
-            const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
-    
-            const [users, rosters] = await Promise.all([
-                fetch(usersUrl).then(r=>r.json()),
-                fetch(rostersUrl).then(r=>r.json())
-            ]);
-    
-            // 3. Establish structured parenthetical title combinations
-            const fullDisplayMap = {};
-            users.forEach(user => {
-                const userName = user.display_name || user.username || "Unknown Owner";
-                if (user.metadata && user.metadata.team_name) {
-                    fullDisplayMap[user.user_id] = user.metadata.team_name + " (" + userName + ")";
-                } else {
-                    fullDisplayMap[user.user_id] = userName;
-                }
-            });
-    
-            // 4. Map settings and clear point fraction errors
-            const standings = rosters.map(roster => {
-                const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
-                return {
-                    team: fullDisplayMap[roster.owner_id] || ("Team " + roster.roster_id),
-                    wins: roster.settings?.wins || 0,
-                    losses: roster.settings?.losses || 0,
-                    pf: pf
-                };
-            });
-    
-            // 5. Sort rankings logically by wins, then points for tiebreakers
-            standings.sort((a,b) => {
-                if (b.wins !== a.wins) {
-                    return b.wins - a.wins;
-                }
-                return b.pf - a.pf;
-            });
-    
-            const tbody = document.querySelector("#standingsTable tbody");
-            tbody.innerHTML = "";
-    
-            // 6. Generate rows and assign playoff text indicators
-            standings.forEach((team, index) => {
-                let odds;
-                let cssClass;
-                
-                if (index < 4) {
-                    odds = "90%+";
-                    cssClass = "playoff-lock";
-                } else if (index < 6) {
-                    odds = "60%-80%";
-                    cssClass = "playoff-bubble";
-                } else {
-                    odds = "<50%";
-                    cssClass = "playoff-out";
-                }
-    
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="col-rank">${index + 1}</td>
-                        <td class="col-team"><strong>${team.team}</strong></td>
-                        <td class="col-record">${team.wins}-${team.losses}</td>
-                        <td class="col-pf"><strong>${team.pf.toFixed(2)}</strong></td>
-                        <td class="col-odds ${cssClass}">${odds}</td>
-                    </tr>
-                `;
-            });
-        } catch (err) {
-            console.error("Standings engine parsing failure:", err);
-        }
-    }
-    
-    // Fire engine functions on load and refresh on a 5-minute loop
-    loadStandings();
-    setInterval(loadStandings, 300000);
-    </script>
 
 </body>
 </html>
