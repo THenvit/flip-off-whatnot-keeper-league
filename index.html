@@ -21,33 +21,42 @@
         background: var(--bg-color);
         color: var(--text-main);
         margin: 0;
-        padding-top: 60px; /* Crucial: Prevents fixed nav from overlapping content */
+        padding-top: 60px; /* Offset for pinned nav */
     }
 
-    /* Locked sticky navigation header bar */
+    /* 📱 FIXED MOBILE NAV BAR: Allows safe horizontal swipe-scrolling */
     .nav-bar {
         background: #0f172a;
-        padding: 0 20px;
+        padding: 0 10px;
         height: 50px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 1000;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        overflow-x: auto; /* Forces scrolling when elements overflow mobile screens */
+        white-space: nowrap; /* Prevents text elements from breaking onto secondary vertical lines */
+        -webkit-overflow-scrolling: touch; /* High-performance momentum scroll for iOS mobile devices */
+    }
+
+    /* Hides the desktop browser scrollbar across nav headers to maintain a native app feel */
+    .nav-bar::-webkit-scrollbar {
+        display: none;
     }
 
     .nav-bar a {
         color: #94a3b8;
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 500;
-        padding: 6px 14px;
+        padding: 6px 12px;
         border-radius: 6px;
-        transition: all 0.2s ease;
+        display: inline-block;
+        flex-shrink: 0; /* Prevents text squishing inside small containers */
     }
 
     .nav-bar a:hover {
@@ -60,74 +69,97 @@
         background: var(--accent);
     }
 
+    /* Fluid Dashboard Main Container */
     .dashboard-container {
         max-width: 1200px;
-        margin: 30px auto;
-        padding: 0 20px;
+        margin: 15px auto;
+        padding: 0 15px;
+        box-sizing: border-box;
     }
 
     h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         font-weight: 800;
         color: #0f172a;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
+        word-break: break-word; /* Prevents header overlap cuts */
     }
 
     .card {
         background: var(--card-bg);
         border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 30px;
+        padding: 16px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         border: 1px solid var(--border-color);
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .card h2 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         font-weight: 700;
         margin-top: 0;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         color: #0f172a;
         border-bottom: 2px solid var(--border-color);
         padding-bottom: 10px;
     }
 
-    /* Standings Table Styling */
+    /* 📱 RESPONSIVE STANDINGS TABLE: Eliminates desktop page cutoff issues */
+    .table-responsive-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 6px;
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 500px; /* Guarantees structured spacing for compact phone viewports */
     }
 
     th {
         background: #f8fafc;
-        color: #0f172a; /* Darkened for accessibility */
-        padding: 14px 16px;
-        font-weight: bold; /* Bolded table headers */
-        font-size: 0.9rem;
+        color: #0f172a;
+        padding: 12px 10px;
+        font-weight: bold;
+        font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         border-bottom: 2px solid var(--border-color);
     }
 
     td {
-        padding: 14px 16px;
+        padding: 12px 10px;
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
     tr:hover td {
         background-color: #f8fafc;
     }
 
-    .col-team { text-align: left; width: 50%; color: var(--primary); }
+    .col-team { text-align: left; width: 50%; color: var(--primary); font-size: 0.88rem; word-break: break-word; }
     .col-record { text-align: center; width: 25%; font-weight: 600; }
     .col-pf { text-align: right; width: 25%; font-variant-numeric: tabular-nums; }
 
-    /* New Clean Layout Grid for true Team Rosters */
+    /* 📱 ULTRALIGHT FLEXIBLE ROSTER DEPTH CHART GRID */
     .roster-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-        gap: 25px;
+        grid-template-columns: 1fr; /* Defaults to single column for standard mobile phones */
+        gap: 15px;
+        width: 100%;
+    }
+
+    /* Media query upgrade step path for tablet/desktop viewports */
+    @media(min-width: 680px) {
+        .roster-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Auto-wraps when screen room permits */
+        }
+        .card { padding: 24px; }
+        h1 { font-size: 1.8rem; }
     }
 
     .team-roster-box {
@@ -136,23 +168,25 @@
         border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .team-roster-header {
         background: #f8fafc;
-        padding: 14px 16px;
+        padding: 12px 14px;
         border-bottom: 1px solid var(--border-color);
         border-left: 4px solid var(--accent);
     }
 
     .team-roster-header h3 {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #0f172a;
+        word-break: break-word;
     }
 
-    /* Micro Table formatting for true Depth Chart feeling */
     .roster-mini-table {
         width: 100%;
         border-collapse: collapse;
@@ -163,44 +197,42 @@
     }
 
     .roster-mini-table td {
-        padding: 8px 16px;
-        font-size: 0.88rem;
+        padding: 8px 12px;
+        font-size: 0.85rem;
         border-bottom: 1px solid #f1f5f9;
     }
 
-    /* Position pills styling */
-    /* Position pills styling (Updated Colors) */
-    .pos-pill {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        color: white;
-        text-align: center;
-        min-width: 32px;
-    }
-    .pos-QB  { background-color: #dc2626; } /* Crisp Red */
-    .pos-RB  { background-color: #2563eb; } /* Crisp Blue */
-    .pos-WR  { background-color: #16a34a; } /* Crisp Green */
-    .pos-TE  { background-color: #ea580c; } /* Warm Orange/Yellow */
-    .pos-K   { background-color: #7c3aed; } /* Purple */
-    .pos-DEF { background-color: #4b5563; } /* Slate Gray */
-    .pos-BN  { background-color: #64748b; } /* Bench Tag Color */
-
-    /* Divider row between starters and bench */
     .bench-divider {
         background-color: #f1f5f9;
         color: #475569;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         text-align: center;
-        padding: 6px 16px !important;
+        padding: 6px 12px !important;
     }
 
+    /* Position pills styling */
+    .pos-pill {
+        display: inline-block;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        min-width: 30px;
+        box-sizing: border-box;
+    }
+    .pos-QB  { background-color: #dc2626; }
+    .pos-RB  { background-color: #2563eb; }
+    .pos-WR  { background-color: #16a34a; }
+    .pos-TE  { background-color: #ea580c; }
+    .pos-K   { background-color: #7c3aed; }
+    .pos-DEF { background-color: #4b5563; }
 </style>
+
 
 </head>
 
@@ -213,26 +245,30 @@
     <a href="standings.html">Standings</a>
     <a href="rules.html">League Rules</a>
     <a href="team-stat-page.html">Team Rosters</a>
+    <a href="history.html">League History</a>
 </div>
     
 <div class="dashboard-container">
     <h1>🏈 Flip Off Whatnot League Dashboard</h1>
 
     <!-- Standings Card -->
+    <!-- Fixed Standings Section with Scroll Wrappers -->
     <div class="card">
         <h2>Standings</h2>
-        <table id="standings">
-            <thead>
-                <tr>
-                    <th class="col-team">Team</th>
-                    <th class="col-record">Record</th>
-                    <th class="col-pf">PF</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Populated via JS -->
-            </tbody>
-        </table>
+        <div class="table-responsive-wrapper">
+            <table id="standings">
+                <thead>
+                    <tr>
+                        <th class="col-team">Team</th>
+                        <th class="col-record">Record</th>
+                        <th class="col-pf">PF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated via JS -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Redesigned Depth-Chart Roster Card Grid -->
