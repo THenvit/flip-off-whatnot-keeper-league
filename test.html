@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>League Standings & Playoff Odds - Flip Off Whatnot</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -11,7 +12,10 @@
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --primary: #1e3a8a;
-            --accent: #2563eb; /* True deep blue accent matching your doc rules */
+            --accent: #3b82f6;
+            --success-color: #16a34a;
+            --warning-color: #ea580c;
+            --danger-color: #dc2626;
         }
     
         body {
@@ -19,10 +23,10 @@
             background: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding-top: 60px; /* Offset spacing context for fixed menu header bar */
+            padding-top: 60px; /* Offset spacing context for the fixed top navbar */
         }
     
-        /* locked Fixed navigation element header layout */
+        /* 📱 FIXED MOBILE NAV BAR: Restructures links into a touch-swipe menu track */
         .nav-bar {
             background: #0f172a;
             padding: 0 10px;
@@ -42,7 +46,7 @@
         }
     
         .nav-bar::-webkit-scrollbar {
-            display: none;
+            display: none; /* Hides standard system scrollbar tracks */
         }
     
         .nav-bar a {
@@ -61,32 +65,18 @@
             background: var(--accent);
         }
     
-        .rules-container {
-            max-width: 900px; /* Slim reading track comfortable for long documents */
+        .container {
+            max-width: 1000px;
             margin: 15px auto;
             padding: 0 15px;
             box-sizing: border-box;
         }
     
-        .rules-main-header {
-            background: #1f2937;
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-    
-        .rules-main-header h1 {
-            font-size: 1.4rem;
+        h1 {
+            font-size: 1.5rem;
             font-weight: 800;
-            margin: 0 0 5px 0;
-        }
-    
-        .rules-main-header p {
-            margin: 0;
-            color: #94a3b8;
-            font-size: 0.9rem;
+            color: #0f172a;
+            margin-bottom: 20px;
         }
     
         .card {
@@ -102,425 +92,196 @@
     
         .card h2 {
             font-size: 1.2rem;
-            font-weight: bold; /* Bolded section titles */
+            font-weight: 700;
             margin-top: 0;
             margin-bottom: 15px;
-            color: #1f2937;
+            color: #0f172a;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 8px;
-        }
-    
-        .rules-h3 {
-            color: #4b5563;
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 15px 0 8px 0;
-        }
-    
-        /* High contrast rule text accent frames */
-        .rule-box-accent {
-            background: #f9fafb;
-            border-left: 4px solid var(--accent);
-            padding: 12px;
-            margin: 12px 0;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            color: #374151;
-        }
-    
-        .rules-list {
-            margin: 0;
-            padding-left: 20px;
-            color: #334155;
-        }
-    
-        .rules-list li {
-            margin-bottom: 10px;
-            line-height: 1.7;
-            font-size: 0.95rem;
+            padding-bottom: 10px;
         }
     
         .table-responsive-wrapper {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            margin-top: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
         }
     
-        .rules-mini-table {
+        table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px; /* Locks table from text-squishing inside phone viewports */
+        }
+    
+        th {
             background: #f8fafc;
-            min-width: 350px;
-        }
-    
-        .rules-mini-table th {
-            background: #e2e8f0;
-            color: #0f172a;
-            padding: 10px 14px;
+            color: #0f172a; /* Darkened header values */
+            padding: 14px 12px;
             font-weight: bold; /* Bolded table headers */
-            font-size: 0.8rem;
+            font-size: 0.88rem;
             text-transform: uppercase;
-            text-align: left;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
         }
     
-        .rules-mini-table td {
-            padding: 12px 14px;
+        td {
+            padding: 14px 12px;
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
     
-        /* 📱 DYNAMIC SCORING GRID SYSTEM */
-        .scoring-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-top: 10px;
-            margin-bottom: 20px;
+        tr:hover td {
+            background-color: #f8fafc;
         }
     
-        .scoring-card {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-        }
+        /* Column Sizing and Alignments */
+        .col-rank { text-align: center; width: 10%; }
+        .col-team { text-align: left; width: 40%; color: var(--primary); }
+        .col-record { text-align: center; width: 15%; font-weight: 600; }
+        .col-pf { text-align: right; width: 15%; font-variant-numeric: tabular-nums; font-weight: 500; }
+        .col-odds { text-align: center; width: 20%; }
     
-        .scoring-label {
-            font-weight: 600;
-            color: #4b5563;
-            font-size: 0.9rem;
-        }
-    
-        .scoring-value {
-            background: var(--accent);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.82rem;
-            white-space: nowrap;
-        }
-    
-        .loading-text {
-            font-style: italic;
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
+        /* High-Contrast Standings Odds Indicators */
+        .playoff-lock { color: var(--success-color); font-weight: bold; }
+        .playoff-bubble { color: var(--warning-color); font-weight: bold; }
+        .playoff-out { color: var(--danger-color); font-weight: bold; }
     
         @media(min-width: 680px) {
-            .rules-container { margin: 30px auto; }
-            .rules-main-header { padding: 25px; }
-            .rules-main-header h1 { font-size: 1.8rem; }
+            .container { margin: 30px auto; padding: 0 20px; }
+            h1 { font-size: 1.8rem; }
             .card { padding: 24px; }
-            .scoring-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
         }
     </style>
 
-    <title>League Rules & Scoring - Flip Off Whatnot</title>
 </head>
 <body>
-
+ 
 <!-- Pinned Navigation Header Bar (Responsive Mobile Swipe Menu) -->
 <div class="nav-bar">
     <a href="index.html">Home Page</a>
     <a href="keepers.html">Keeper Tracker</a>
-    <a href="standings.html">Standings</a>
-    <a href="rules.html" class="active">League Rules</a>
+    <a href="standings.html" class="active">Standings</a>
+    <a href="rules.html">League Rules</a>
     <a href="team-stat-page.html">Team Rosters</a>
     <a href="history.html">League History</a>
 </div>
-
-<div class="rules-container">
-    <div class="rules-main-header">
-        <h1>🏈 Flip Off Whatnot - League Rules & Scoring</h1>
-        <p>12-Team Sleeper League | Full PPR | Snake Draft</p>
-    </div>
-
-    <!-- ADDED SECTION: Financials -->
+ 
+<div class="container">
+    <h1>🏈 League Standings & Playoff Odds</h1>
+    
     <div class="card">
-        <h2>Buy-In & Financials</h2>
-        <ul class="rules-list">
-            <li><strong>Annual Buy-In:</strong> $50 per manager. All dues must be paid via LeagueSafe prior to the draft.</li>
-            <li><strong>Payout Structure:</strong>
-                <div class="table-responsive-wrapper">
-                    <table class="rules-mini-table">
-                        <thead>
-                            <tr>
-                                <th>Placement</th>
-                                <th style="text-align: right;">Payout Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>🏆 <strong>League Champion (1st)</strong></td>
-                                <td style="text-align: right; font-weight: bold; color: var(--accent);">$400</td>
-                            </tr>
-                            <tr>
-                                <td>🥈 <strong>Runner-Up (2nd)</strong></td>
-                                <td style="text-align: right; font-weight: bold;">$200</td>
-                            </tr>
-                            <tr>
-                                <td>🥉 <strong>Third Place (3rd)</strong></td>
-                                <td style="text-align: right; font-weight: bold;">Pat on the back</td>
-                            </tr>
-                            <tr>
-                                <td>🚽 <strong>Last Place</strong></td>
-                                <td style="text-align: right; font-weight: bold; color: var(--primary);">Flip's Used Socks</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: League Overview -->
-    <div class="card">
-        <h2>League Overview</h2>
-        <ul class="rules-list">
-            <li><strong>Platform:</strong> Sleeper</li>
-            <li><strong>Teams:</strong> 12</li>
-            <li><strong>Scoring:</strong> Full PPR</li>
-            <li><strong>Draft Format:</strong> Snake Draft</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Keeper Structure -->
-    <div class="card">
-        <h2>Keeper Structure</h2>
-        <div class="rule-box-accent">
-            Each team may keep:
-            <ul style="margin-top: 5px; margin-bottom: 0;">
-                <li>1 Rookie Keeper</li>
-                <li>1 Open Keeper (any eligible player)</li>
-            </ul>
+        <h2>Current Standings</h2>
+        <!-- 📱 RESPONSIVE WRAPPER: Shields table margins from mobile screen boundaries -->
+        <div class="table-responsive-wrapper">
+            <table id="standingsTable">
+                <thead>
+                    <tr>
+                        <th class="col-rank">Rank</th>
+                        <th class="col-team">Team</th>
+                        <th class="col-record">Record</th>
+                        <th class="col-pf">Points For</th>
+                        <th class="col-odds">Playoff Odds</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated via JS -->
+                </tbody>
+            </table>
         </div>
-        <p style="margin-top: 10px; margin-bottom: 0; font-size: 0.95rem;">
-            Managers may keep fewer than two players but may not exceed two keepers.
-        </p>
-    </div>
-
-    <!-- RESTORED: Keeper Eligibility -->
-    <div class="card">
-        <h2>Keeper Eligibility</h2>
-        <h3 class="rules-h3">Rookie Keeper</h3>
-        <p style="font-size: 0.95rem; margin: 0 0 15px 0;">Must have entered the NFL as a rookie during the previous season and be on the manager's roster at season end.</p>
-        
-        <h3 class="rules-h3">Open Keeper</h3>
-        <p style="font-size: 0.95rem; margin: 0;">Any eligible player on a manager's final roster may be selected.</p>
-    </div>
-
-    <!-- RESTORED: Keeper Cost -->
-    <div class="card">
-        <h2>Keeper Cost</h2>
-        <div class="rule-box-accent">A keeper costs the draft round in which the player was originally selected.</div>
-        <p style="margin-bottom: 5px;"><strong>Example:</strong></p>
-        <ul class="rules-list">
-            <li>Drafted Round 8</li>
-            <li>Kept Next Season = Round 8 Cost</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Keeper Escalation -->
-    <div class="card">
-        <h2>Keeper Escalation</h2>
-        <div class="rule-box-accent">Players may be kept for a maximum of two consecutive seasons.</div>
-        <p style="margin-bottom: 10px;"><strong>The additional keeper season costs are calculated based on original round drafted as follows:</strong></p>
-        <ul class="rules-list">
-            <li>Round 4 to Round 14 or Free Agent/Waiver: Automatic 3rd Round Pick</li>
-            <li>Round 3: 2nd Round Pick</li>
-            <li>Round 2: 1st Round Pick</li>
-            <li>Round 1: Ineligible Keeper</li>
-        </ul>
-        <p style="margin-top: 15px; margin-bottom: 5px;"><strong>Example:</strong></p>
-        <ul class="rules-list">
-            <li>2026 Draft: Round 10</li>
-            <li>2027 Keeper: Round 10</li>
-            <li>2028 Keeper: Round 3</li>
-            <li>Returns to draft pool in 2029</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Misc Keeper Rules -->
-    <div class="card">
-        <h2>Misc. Keeper Rules</h2>
-        <div class="rule-box-accent">Two Keepers with same draft round cost.</div>
-        <p style="margin-bottom: 10px;"><strong>If both your keepers would have the same Keeper Cost, the cost for the second would be one round earlier than original cost:</strong></p>
-        <p style="margin-bottom: 5px;"><strong>Example:</strong></p>
-        <ul class="rules-list">
-            <li>Keeping Player A for the 2nd time: Costs 3rd Round Pick</li>
-            <li>Keeping Player B from previous year 3rd round pick: Costs 3rd Round Pick</li>
-            <li>Cost to keep both players: 2nd Round and 3rd round pick</li>
-            <li><strong>Note:</strong> If both players would cost a 1st round pick you may not keep both.</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Trades -->
-    <div class="card">
-        <h2>Trades</h2>
-        <ul class="rules-list">
-            <li>Keeper rights transfer with the player.</li>
-            <li>Keeper value remains unchanged after a trade.</li>
-            <li>Keeper history also transfers.</li>
-            <li>Trades may not be used to reset keeper eligibility.</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Waivers & Free Agents -->
-    <div class="card">
-        <h2>Waivers & Free Agents</h2>
-        <div class="rule-box-accent">Waiver and free-agent pickups receive a keeper value equal to the final draft round.</div>
-        <p style="margin: 0; font-size: 0.95rem;"><strong>Example:</strong> An undrafted player picked up during the season can be kept using the manager's last-round draft pick.</p>
-    </div>
-
-    <!-- RESTORED: Keeper Deadline -->
-    <div class="card">
-        <h2>Keeper Deadline</h2>
-        <p style="margin: 0; font-size: 0.95rem;">All keeper selections must be submitted one week before the annual draft.</p>
-    </div>
-
-    <!-- RESTORED: Competitive Integrity -->
-    <div class="card">
-        <h2>Competitive Integrity</h2>
-        <ul class="rules-list">
-            <li>No collusion.</li>
-            <li>No intentional tanking.</li>
-            <li>Managers must set active lineups.</li>
-            <li>Commissioner reserves the right to review suspicious activity.</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Rule Changes -->
-    <div class="card">
-        <h2>Rule Changes</h2>
-        <ul class="rules-list">
-            <li>Standard rule changes require majority approval.</li>
-            <li>Keeper rule changes require a two-thirds majority.</li>
-            <li>Rule changes are not retroactive unless unanimously approved.</li>
-        </ul>
-    </div>
-
-    <!-- RESTORED: Dynamic Live Scoring Interface -->
-    <div class="card">
-        <h2>Live Scoring Settings</h2>
-        <div id="scoring-status" class="loading-text">Connecting to your Sleeper League configurations...</div>
-        
-        <div id="passing-title" style="display:none;"><h3 class="rules-h3" style="border-left: 4px solid #2563eb; padding-left: 8px;">Passing</h3></div>
-        <div id="passing-container" class="scoring-grid"></div>
-        
-        <div id="rushing-title" style="display:none;"><h3 class="rules-h3" style="border-left: 4px solid #2563eb; padding-left: 8px;">Rushing</h3></div>
-        <div id="rushing-container" class="scoring-grid"></div>
-        
-        <div id="receiving-title" style="display:none;"><h3 class="rules-h3" style="border-left: 4px solid #2563eb; padding-left: 8px;">Receiving</h3></div>
-        <div id="receiving-container" class="scoring-grid"></div>
-        
-        <div id="misc-title" style="display:none;"><h3 class="rules-h3" style="border-left: 4px solid #2563eb; padding-left: 8px;">Misc</h3></div>
-        <div id="misc-container" class="scoring-grid"></div>
     </div>
 </div>
-<script>
- // Configuration: Loads ID value directly from your unified config repository file
- let RULES_LEAGUE_ID = "";
-
- // Strictly ordered array groups specifying display sequences matching your document layout rules
- const passingOrder = ["pass_yd", "pass_td", "pass_2pt", "pass_int"];
- const rushingOrder = ["rush_yd", "rush_td", "rush_2pt"];
- const receivingOrder = ["rec_yd", "rec_td", "rec_2pt"];
- const miscOrder = ["fum_lost", "fum_rec_td"];
-
- // Clean English translation reference maps
- const scoringTranslationMap = {
-     "pass_yd": "Passing Yards",
-     "pass_td": "Passing TD",
-     "pass_2pt": "Passing 2-PT Conversion",
-     "pass_int": "Pass Intercepted",
-     "rush_yd": "Rushing Yards",
-     "rush_td": "Rushing TD",
-     "rush_2pt": "Rushing 2-PT Conversion",
-     "rec_yd": "Receiving Yards",
-     "rec_td": "Receiving TD",
-     "rec_2pt": "Receiving 2-PT Conversion",
-     "fum_lost": "Fumble Lost",
-     "fum_rec_td": "Fumble Recovery TD"
- };
-
- async function fetchScoringSettings() {
-     const statusDiv = document.getElementById('scoring-status');
-     try {
-         // Read your central configuration file layout state
-         const configRes = await fetch("config.json");
-         const configData = await configRes.json();
-         RULES_LEAGUE_ID = configData.LEAGUE_ID;
-
-         if (!RULES_LEAGUE_ID) {
-             statusDiv.innerText = "Error: LEAGUE_ID variable missing from config.json.";
-             return;
-         }
-
-         // Pull live scoring parameters from Sleeper's core web server
-         const response = await fetch('https://api.sleeper.app/v1/league/' + RULES_LEAGUE_ID);
-         const leagueData = await response.json();
-         const scoring = leagueData.scoring_settings || {};
-         
-         statusDiv.style.display = "none"; // Clear connecting text slot
-
-         // Inner rendering processor loop engine
-         const renderGroup = (orderedKeys, containerId, titleId) => {
-             const container = document.getElementById(containerId);
-             const titleBlock = document.getElementById(titleId);
-             let hasItems = false;
-
-             orderedKeys.forEach(key => {
-                 if (scoring[key] !== undefined && scoringTranslationMap[key]) {
-                     hasItems = true;
-                     let rawValue = scoring[key];
-                     let displayValue = rawValue;
-
-                     // Format fractional scoring decimals to transparent yard totals
-                     if ((key === "pass_yd" || key === "rush_yd" || key === "rec_yd") && rawValue > 0 && rawValue < 1) {
-                         displayValue = "1 pt per " + Math.round(1 / rawValue) + " yds";
-                     } else {
-                         displayValue = rawValue >= 0 ? "+" + rawValue + " pts" : rawValue + " pts";
-                     }
-
-                     if (key === "pass_int") displayValue = rawValue + " pts";
-
-                     const card = document.createElement('div');
-                     card.className = 'scoring-card';
-                     card.innerHTML = `
-                         <span class="scoring-label">${scoringTranslationMap[key]}</span>
-                         <span class="scoring-value">${displayValue}</span>
-                     `;
-                     container.appendChild(card);
-                 }
-             });
-
-             if (hasItems && titleBlock) {
-                 titleBlock.style.display = "block";
-             }
-         };
-
-         // Execute independent rendering matrices across position tables
-         renderGroup(passingOrder, "passing-container", "passing-title");
-         renderGroup(rushingOrder, "rushing-container", "rushing-title");
-         renderGroup(receivingOrder, "receiving-container", "receiving-title");
-         renderGroup(miscOrder, "misc-container", "misc-title");
-
-     } catch (error) {
-         console.error(error);
-         statusDiv.innerText = "Failed to sync live rules from Sleeper API. Verify config file status.";
-     }
- }
-
- window.addEventListener('DOMContentLoaded', fetchScoringSettings);
-</script>
+    <script>
+    // Global runtime league variable pulled dynamically from config.json
+    let LEAGUE_ID = "";
+    
+    async function loadStandings(){
+        try {
+            // 1. Fetch dynamic config.json requirements
+            const configRes = await fetch("config.json");
+            const configData = await configRes.json();
+            LEAGUE_ID = configData.LEAGUE_ID;
+    
+            if (!LEAGUE_ID) {
+                throw new Error("LEAGUE_ID variable missing from config.json.");
+            }
+    
+            // 2. Query data assets concurrently
+            const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
+            const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
+    
+            const [users, rosters] = await Promise.all([
+                fetch(usersUrl).then(r=>r.json()),
+                fetch(rostersUrl).then(r=>r.json())
+            ]);
+    
+            // 3. Establish structured parenthetical title combinations
+            const fullDisplayMap = {};
+            users.forEach(user => {
+                const userName = user.display_name || user.username || "Unknown Owner";
+                if (user.metadata && user.metadata.team_name) {
+                    fullDisplayMap[user.user_id] = user.metadata.team_name + " (" + userName + ")";
+                } else {
+                    fullDisplayMap[user.user_id] = userName;
+                }
+            });
+    
+            // 4. Map settings and clear point fraction errors
+            const standings = rosters.map(roster => {
+                const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
+                return {
+                    team: fullDisplayMap[roster.owner_id] || ("Team " + roster.roster_id),
+                    wins: roster.settings?.wins || 0,
+                    losses: roster.settings?.losses || 0,
+                    pf: pf
+                };
+            });
+    
+            // 5. Sort rankings logically by wins, then points for tiebreakers
+            standings.sort((a,b) => {
+                if (b.wins !== a.wins) {
+                    return b.wins - a.wins;
+                }
+                return b.pf - a.pf;
+            });
+    
+            const tbody = document.querySelector("#standingsTable tbody");
+            tbody.innerHTML = "";
+    
+            // 6. Generate rows and assign playoff text indicators
+            standings.forEach((team, index) => {
+                let odds;
+                let cssClass;
+                
+                if (index < 4) {
+                    odds = "90%+";
+                    cssClass = "playoff-lock";
+                } else if (index < 6) {
+                    odds = "60%-80%";
+                    cssClass = "playoff-bubble";
+                } else {
+                    odds = "<50%";
+                    cssClass = "playoff-out";
+                }
+    
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="col-rank">${index + 1}</td>
+                        <td class="col-team"><strong>${team.team}</strong></td>
+                        <td class="col-record">${team.wins}-${team.losses}</td>
+                        <td class="col-pf"><strong>${team.pf.toFixed(2)}</strong></td>
+                        <td class="col-odds ${cssClass}">${odds}</td>
+                    </tr>
+                `;
+            });
+        } catch (err) {
+            console.error("Standings engine parsing failure:", err);
+        }
+    }
+    
+    // Fire engine functions on load and refresh on a 5-minute loop
+    loadStandings();
+    setInterval(loadStandings, 300000);
+    </script>
 
 </body>
 </html>
