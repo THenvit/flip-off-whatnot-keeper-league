@@ -20,8 +20,8 @@ async function initDashboard() {
         if (statusDiv) statusDiv.innerText = "Loading cached player database (this can take a few seconds)...";
 
             // 2. Fetch data assets safely with error fallbacks
-        const usersUrl = 'https://sleeper.app' + LEAGUE_ID + '/users';
-        const rostersUrl = 'https://sleeper.app' + LEAGUE_ID + '/rosters';
+        const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
+        const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
         const masterPlayersUrl = 'public/players.json'; 
 
         const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
