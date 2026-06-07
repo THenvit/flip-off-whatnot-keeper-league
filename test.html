@@ -247,7 +247,7 @@
     <div class="card">
         <h2>Buy-In & Financials</h2>
         <ul class="rules-list">
-            <li><strong>Annual Buy-In:</strong> $100 per manager. All dues must be paid via LeagueSafe prior to the draft.</li>
+            <li><strong>Annual Buy-In:</strong> $50 per manager. All dues must be paid via LeagueSafe prior to the draft.</li>
             <li><strong>Payout Structure:</strong>
                 <div class="table-responsive-wrapper">
                     <table class="rules-mini-table">
@@ -260,7 +260,7 @@
                         <tbody>
                             <tr>
                                 <td>🏆 <strong>League Champion (1st)</strong></td>
-                                <td style="text-align: right; font-weight: bold; color: var(--accent);">$700</td>
+                                <td style="text-align: right; font-weight: bold; color: var(--accent);">$400</td>
                             </tr>
                             <tr>
                                 <td>🥈 <strong>Runner-Up (2nd)</strong></td>
@@ -268,11 +268,11 @@
                             </tr>
                             <tr>
                                 <td>🥉 <strong>Third Place (3rd)</strong></td>
-                                <td style="text-align: right; font-weight: bold;">$100</td>
+                                <td style="text-align: right; font-weight: bold;">Pat on the back</td>
                             </tr>
                             <tr>
-                                <td>👑 <strong>Regular Season Points King</strong></td>
-                                <td style="text-align: right; font-weight: bold; color: var(--primary);">$200</td>
+                                <td>🚽 <strong>Last Place</strong></td>
+                                <td style="text-align: right; font-weight: bold; color: var(--primary);">Flip's Used Socks</td>
                             </tr>
                         </tbody>
                     </table>
@@ -465,7 +465,7 @@
          }
 
          // Pull live scoring parameters from Sleeper's core web server
-         const response = await fetch('https://sleeper.app' + RULES_LEAGUE_ID);
+         const response = await fetch('https://api.sleeper.app/v1/league/' + RULES_LEAGUE_ID);
          const leagueData = await response.json();
          const scoring = leagueData.scoring_settings || {};
          
