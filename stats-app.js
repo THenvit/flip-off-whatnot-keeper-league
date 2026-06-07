@@ -23,7 +23,7 @@ async function initDashboard() {
         globalPlayersDb = await playersResponse.json() || {};
 
         // 3. Construct API endpoints securely using standard concatenation
-        const baseUrl = 'https://sleeper.app' + LEAGUE_ID;
+        const baseUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID;
         const usersUrl = baseUrl + '/users';
         const rostersUrl = baseUrl + '/rosters';
 
