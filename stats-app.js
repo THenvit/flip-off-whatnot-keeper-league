@@ -6,9 +6,9 @@ let completeLeagueData = [];
 async function initDashboard() {
     const statusDiv = document.getElementById('status');
     try {
-        statusDiv.innerText = "Loading configuration setup...";
+        if (statusDiv) statusDiv.innerText = "Loading configuration setup...";
         
-        // 1. Fetch dynamic config.json settings to parse your current league ID
+        // 1. Load configuration safely from central config file
         const configRes = await fetch("config.json");
         const configData = await configRes.json();
         LEAGUE_ID = configData.LEAGUE_ID;
@@ -17,136 +17,133 @@ async function initDashboard() {
             throw new Error("LEAGUE_ID variable missing from config.json");
         }
 
-        // 2. Fetch cached player data assets from your morning cron job file
-        statusDiv.innerText = "Loading cached player database (this can take a few seconds)...";
-        const playersResponse = await fetch('public/players.json');
-        globalPlayersDb = await playersResponse.json() || {};
+        if (statusDiv) statusDiv.innerText = "Loading cached player database (this can take a few seconds)...";
 
-        // 3. Construct API endpoints securely using standard concatenation
-        const baseUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID;
-        const usersUrl = baseUrl + '/users';
-        const rostersUrl = baseUrl + '/rosters';
+            // 2. Fetch data assets safely with error fallbacks
+        const usersUrl = 'https://sleeper.app' + LEAGUE_ID + '/users';
+        const rostersUrl = 'https://sleeper.app' + LEAGUE_ID + '/rosters';
+        const masterPlayersUrl = 'public/players.json'; 
 
-        statusDiv.innerText = "Connecting to Sleeper: Fetching league managers...";
-        const usersResponse = await fetch(usersUrl);
-        const usersData = await usersResponse.json() || [];
+        const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
+            fetch(usersUrl).catch(e => ({ json: () => [] })),
+            fetch(rostersUrl).catch(e => ({ json: () => [] })),
+            fetch(masterPlayersUrl).catch(e => ({ json: () => ({}) }))
+        ]);
 
-        statusDiv.innerText = "Connecting to Sleeper: Fetching league rosters...";
-        const rostersResponse = await fetch(rostersUrl);
-        const rostersData = await rostersResponse.json() || [];
+        const users = await usersRes.json();
+        const rosters = await rostersRes.json();
+        globalPlayersDb = await masterPlayersRes.json();
 
-        statusDiv.innerText = "Processing standings and calculating records...";
+        if (statusDiv) statusDiv.innerText = "Processing standings and calculating records...";
 
-            // Bulletproof standings calculation with fallback safeguards
-        const sortedRostersForStandings = [...rostersData].sort((a, b) => {
+            // Safely map standings calculation
+        const sortedRostersForStandings = [...rosters].sort((a, b) => {
             const winsA = a.settings?.wins || 0;
             const winsB = b.settings?.wins || 0;
             if (winsB !== winsA) return winsB - winsA;
-            
             const pointsA = (a.settings?.fpts || 0) + (a.settings?.fpts_decimal || 0) / 100;
             const pointsB = (b.settings?.fpts || 0) + (b.settings?.fpts_decimal || 0) / 100;
             return pointsB - pointsA;
         });
 
-        // 4. Map users to a helper lookup object
+        // Map users securely to handle profiles
         const usersMap = {};
-        usersData.forEach(user => {
-            if (user && user.user_id) {
-                usersMap[user.user_id] = {
-                    teamName: user.metadata?.team_name || user.display_name || "Unknown Team",
-                    ownerName: user.display_name || "Unknown Owner"
-                };
-            }
-        });
-
-        // 5. Combine rosters with user data and player metadata
-        completeLeagueData = rostersData.map(roster => {
-            if (!roster) return null;
-            const owner = usersMap[roster.owner_id] || { teamName: 'Team ' + (roster.roster_id || ''), ownerName: "Unknown Owner" };
-            
-            const startersList = roster.starters || [];
-            const taxiList = roster.taxi || [];
-            const allPlayersList = roster.players || [];
-
-            // Calculate precise record variables safely
-            const wins = roster.settings?.wins || 0;
-            const losses = roster.settings?.losses || 0;
-            const ties = roster.settings?.ties || 0;
-            const recordStr = ties > 0 ? (wins + '-' + losses + '-' + ties) : (wins + '-' + losses);
-            
-            // Find numerical position rank out of the sorted standings list array
-            const standingRank = sortedRostersForStandings.findIndex(r => r.roster_id === roster.roster_id) + 1;
-
-            // Resolve player strings to database profiles and assign lineup statuses
-            const playerProfiles = allPlayersList.map(id => {
-                const baseProfile = globalPlayersDb[id] || { 
-                    player_id: id, 
-                    first_name: "Unknown", 
-                    last_name: "Player (" + id + ")", 
-                    position: "N/A", 
-                    team: "N/A",
-                    injury_status: null
-                };
-                let slotType = "Bench";
-                let starterIndex = startersList.indexOf(id);
-                
-                if (starterIndex !== -1) {
-                    slotType = "Starter";
-                } else if (taxiList.includes(id)) {
-                    slotType = "Taxi";
+        if (Array.isArray(users)) {
+            users.forEach(user => {
+                if (user && user.user_id) {
+                    usersMap[user.user_id] = {
+                        teamName: user.metadata?.team_name || user.display_name || "Unknown Team",
+                        ownerName: user.display_name || "Unknown Owner"
+                    };
                 }
-                return {
-                    ...baseProfile,
-                    slotType: slotType,
-                    starterOrder: starterIndex
-                };
             });
+        }
 
-            return {
-                rosterId: roster.roster_id,
-                teamName: owner.teamName,
-                ownerName: owner.ownerName,
-                record: recordStr,
-                rank: standingRank || 1,
-                players: playerProfiles
-            };
-        }).filter(Boolean); // Cleans out null items safely
+        // Combine rosters with user profiles
+        if (Array.isArray(rosters)) {
+            completeLeagueData = rosters.map(roster => {
+                if (!roster) return null;
+                const owner = usersMap[roster.owner_id] || { teamName: 'Team ' + (roster.roster_id || ''), ownerName: "Unknown Owner" };
+                
+                const startersList = roster.starters || [];
+                const taxiList = roster.taxi || [];
+                const allPlayersList = roster.players || [];
 
-        // Sort displayed teams alphabetically by name
+                const wins = roster.settings?.wins || 0;
+                const losses = roster.settings?.losses || 0;
+                const ties = roster.settings?.ties || 0;
+                const recordStr = ties > 0 ? (wins + '-' + losses + '-' + ties) : (wins + '-' + losses);
+                
+                const standingRank = sortedRostersForStandings.findIndex(r => r.roster_id === roster.roster_id) + 1;
+
+                const playerProfiles = allPlayersList.map(id => {
+                    const baseProfile = globalPlayersDb[id] || { 
+                        player_id: id, 
+                        first_name: "Unknown", 
+                        last_name: "Player (" + id + ")", 
+                        position: "N/A", 
+                        team: "N/A",
+                        injury_status: null
+                    };
+                    let slotType = "Bench";
+                    let starterIndex = startersList.indexOf(id);
+                    
+                    if (starterIndex !== -1) {
+                        slotType = "Starter";
+                    } else if (taxiList.includes(id)) {
+                        slotType = "Taxi";
+                    }
+                    return {
+                        ...baseProfile,
+                        slotType: slotType,
+                        starterOrder: starterIndex
+                    };
+                });
+
+                return {
+                    rosterId: roster.roster_id,
+                    teamName: owner.teamName,
+                    ownerName: owner.ownerName,
+                    record: recordStr,
+                    rank: standingRank || 1,
+                    players: playerProfiles
+                };
+            }).filter(Boolean);
+        }
+
+        // Sort alphabetically
         completeLeagueData.sort((a, b) => (a.teamName || "").localeCompare(b.teamName || ""));
 
-        // 6. Setup the dropdown choices
+        // Setup dropdown choices safely
         populateDropdown(completeLeagueData);
         
-        // 7. Initial render (show everything)
-        statusDiv.innerText = "Building user interface...";
+        // Initial render
+        if (statusDiv) statusDiv.innerText = "Building user interface...";
         renderDashboard("all");
-        statusDiv.style.display = "none"; // Hide standard message logs cleanly on success
+        
+        // Hide loading slot cleanly on completion
+        if (statusDiv) statusDiv.style.display = "none";
 
     } catch (error) {
-        console.error("Dashboard error detail log:", error);
-        statusDiv.innerText = "Error loading metrics! Check browser console logs for context.";
+        console.error("Dashboard engine critical crash:", error);
+        if (statusDiv) statusDiv.innerText = "Error loading metrics! Check browser console tools.";
     }
 }
 
 function populateDropdown(teams) {
     const select = document.getElementById('team-select');
-    if (!select) return;
+    if (!select) return; // Guard clause stops crash if HTML element ID is mismatched
     
-    // Reset options
     select.innerHTML = '<option value="all">-- All Teams --</option>';
     
     teams.forEach(team => {
         if (!team) return;
         const opt = document.createElement('option');
         opt.value = team.rosterId;
-        // Restructured selection labels to include parenthetical formatting
         opt.text = team.teamName + " (" + team.ownerName + ") [Rank: #" + team.rank + "]";
         select.appendChild(opt);
     });
     select.disabled = false;
-    
-    // Clear old listener references
     select.onchange = (e) => renderDashboard(e.target.value);
 }
 
@@ -196,8 +193,6 @@ function renderDashboard(filterValue) {
 
             playerArray.forEach(player => {
                 const card = document.createElement('div');
-                
-                // Determine injury CSS modifier classes
                 let injuryClass = "";
                 const statusLower = (player.injury_status || "").toLowerCase();
                 
@@ -210,15 +205,13 @@ function renderDashboard(filterValue) {
                 card.onclick = () => openModal(player.player_id);
 
                 const pos = player.position || 'N/A';
-                
-                // 🎨 CUSTOM THEME COLOR MAPPINGS
                 let posColor = '#64748b';
-                if (pos === 'QB') posColor = '#dc2626';      // Crisp Red
-                else if (pos === 'RB') posColor = '#2563eb'; // Crisp Blue
-                else if (pos === 'WR') posColor = '#16a34a'; // Crisp Green
-                else if (pos === 'TE') posColor = '#ea580c'; // Warm Orange
-                else if (pos === 'K') posColor = '#7c3aed';  // Purple
-                else if (pos === 'DEF') posColor = '#4b5563'; // Slate Gray
+                if (pos === 'QB') posColor = '#dc2626';      
+                else if (pos === 'RB') posColor = '#2563eb'; 
+                else if (pos === 'WR') posColor = '#16a34a'; 
+                else if (pos === 'TE') posColor = '#ea580c'; 
+                else if (pos === 'K') posColor = '#7c3aed';  
+                else if (pos === 'DEF') posColor = '#4b5563'; 
 
                 const fullName = (player.first_name || '') + ' ' + (player.last_name || '');
                 
@@ -237,7 +230,6 @@ function renderDashboard(filterValue) {
             section.appendChild(grid);
         };
 
-        // Build the True Team Roster breakdown sub-sections in order
         createSubSection("Starters Lineup", starters, "badge-starter");
         createSubSection("Bench Depth", bench, "badge-bench");
         createSubSection("Taxi Squad", taxi, "badge-taxi");
@@ -246,7 +238,7 @@ function renderDashboard(filterValue) {
     });
 }
 
-// 5. Detail Stats Modal Controller (Fixed Crashes)
+// Modal Functionality for Detailed Stats View
 function openModal(playerId) {
     const player = globalPlayersDb[playerId];
     if (!player) return;
@@ -285,9 +277,5 @@ function closeModal() {
     if (modal) modal.classList.remove('show');
 }
 
-// Boot up dashboard logic once DOM assets are parsed
-window.addEventListener('DOMContentLoaded', initDashboard);
-
-
-// Boot up dashboard logic once DOM assets are parsed
+// Boot up dashboard logic once DOM assets are parsed safely into window memory
 window.addEventListener('DOMContentLoaded', initDashboard);
