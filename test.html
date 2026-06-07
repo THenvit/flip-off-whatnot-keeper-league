@@ -92,14 +92,14 @@
     
         .controls-card {
             background: var(--card-bg);
-            padding: 15px;
+            padding: 20px; /* Increased overall breathing room */
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
             display: flex;
+            flex-direction: column; /* Forces vertical stacking on mobile */
             gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
+            align-items: flex-start;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
             width: 100%;
@@ -108,12 +108,8 @@
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            width: 100%; /* Spans full width on phone screens */
-        }
-    
-        @media(min-width: 480px) {
-            .control-group { width: auto; } /* Collapses back to inline space on desktop screens */
+            gap: 8px; /* Adds explicit vertical spacing between label text and select box */
+            width: 100%; 
         }
     
         label {
@@ -123,16 +119,33 @@
         }
     
         select {
-            padding: 8px 12px;
-            border-radius: 4px;
+            padding: 10px 12px; /* Uniform internal touch padding */
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background-color: #fff;
-            width: 100%;
-            max-width: 320px;
+            width: 100%; /* Spans the full box width natively on phones */
+            max-width: 100%; /* Prevents horizontal clipping overflows */
             font-size: 0.95rem;
             color: var(--text-main);
             box-sizing: border-box;
+            height: 44px; /* Standard optimized mobile tap-target size */
         }
+    
+        /* Media query upgrade loop to handle standard desktop monitors */
+        @media(min-width: 580px) {
+            .controls-card {
+                flex-direction: row; /* Switches back to side-by-side layout on monitors */
+                align-items: center;
+                padding: 15px 20px;
+            }
+            .control-group {
+                width: auto;
+            }
+            select {
+                width: 320px; /* Locks select width cleanly when screen real estate permits */
+            }
+        }
+
     
         .table-container {
             background: var(--card-bg);
