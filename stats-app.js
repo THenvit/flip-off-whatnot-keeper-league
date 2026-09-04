@@ -3,6 +3,9 @@ let LEAGUE_ID = "";
 let globalPlayersDb = {};
 let completeLeagueData = [];
 
+// Set your league's total starting FAAB budget here
+const TOTAL_FAAB_BUDGET = 100;
+
 async function initDashboard() {
     const statusDiv = document.getElementById('status');
     try {
@@ -76,6 +79,10 @@ async function initDashboard() {
                 
                 const standingRank = sortedRostersForStandings.findIndex(r => r.roster_id === roster.roster_id) + 1;
 
+                // Calculate FAAB tracking metrics
+                const faabUsed = roster.settings?.waiver_budget_used || 0;
+                const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
+
                 const playerProfiles = allPlayersList.map(id => {
                     const baseProfile = globalPlayersDb[id] || { 
                         player_id: id, 
@@ -106,6 +113,7 @@ async function initDashboard() {
                     ownerName: owner.ownerName,
                     record: recordStr,
                     rank: standingRank || 1,
+                    faab: faabRemaining,
                     players: playerProfiles
                 };
             }).filter(Boolean);
@@ -167,7 +175,7 @@ function renderDashboard(filterValue) {
         title.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
                 <span><strong>${team.teamName}</strong> <small style="font-size: 13px; color: var(--text-muted); font-weight: normal;">(${team.ownerName})</small></span>
-                <span style="font-size: 13px; background: #e2e8f0; color: #334155; padding: 4px 12px; border-radius: 20px; font-weight: 600;">Rank: #${team.rank} (${team.record})</span>
+                <span style="font-size: 12px; background: #e2e8f0; color: #334155; padding: 4px 12px; border-radius: 20px; font-weight: 600;">Rank: #${team.rank} (${team.record}) | <span style="color: #16a34a;">FAAB: $${team.faab}</span></span>
             </div>
         `;
         section.appendChild(title);
