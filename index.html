@@ -294,6 +294,76 @@
         </div>
     </div>
 
+    <!-- Weekly Matchup Live Scoreboard Grid -->
+    <div class="card">
+        <h2>Live Head-to-Head Scoreboard</h2>
+        <style>
+            .scoreboard-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 15px;
+                width: 100%;
+                margin-top: 10px;
+            }
+            @media(min-width: 768px) {
+                .scoreboard-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+                }
+            }
+            .matchup-box {
+                background: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 14px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            }
+            .scoreboard-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+            }
+            .scoreboard-row:first-child {
+                border-bottom: 1px dashed var(--border-color);
+            }
+            .score-team-name {
+                font-weight: 600;
+                font-size: 0.92rem;
+                color: var(--text-main);
+                max-width: 70%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .score-value {
+                font-variant-numeric: tabular-nums;
+                font-weight: 700;
+                font-size: 1.05rem;
+                color: var(--primary);
+            }
+            .score-leader {
+                color: var(--success-color) !important;
+            }
+            .vs-badge {
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                font-weight: bold;
+                text-align: center;
+                background: #e2e8f0;
+                padding: 2px 6px;
+                border-radius: 10px;
+                margin: -4px auto;
+                width: fit-content;
+                display: block;
+                z-index: 5;
+                position: relative;
+            }
+        </style>
+        <div class="scoreboard-grid" id="scoreboardContainer">
+            <div style="text-align: center; color: var(--text-muted); width: 100%; padding: 15px;">Loading active matchup board...</div>
+        </div>
+    </div>
+
     
     <!-- Redesigned Depth-Chart Roster Card Grid -->
     <div class="card">
@@ -336,24 +406,27 @@ async function loadLeague() {
         const usersUrl = baseUrl + '/users';
         const rostersUrl = baseUrl + '/rosters';
         const transactionsUrl = baseUrl + '/transactions/' + currentWeek; // Fetches this week's live moves
+        const matchupsUrl = baseUrl + '/matchups/' + currentWeek;
         const masterPlayersUrl = 'public/players.json'; 
 
-        const [usersRes, rostersRes, transactionsRes, masterPlayersRes] = await Promise.all([
+        const [usersRes, rostersRes, transactionsRes, matchupsRes, masterPlayersRes] = await Promise.all([
             fetch(usersUrl),
             fetch(rostersUrl),
             fetch(transactionsUrl),
+            fetch(matchupsUrl),
             fetch(masterPlayersUrl)
         ]);
 
         const users = await usersRes.json();
         const rosters = await rostersRes.json();
         const rawTransactions = await transactionsRes.json();
+        const rawMatchups = await matchupsRes.json();
         const players = await masterPlayersRes.json();
 
         // 4. Establish owner username maps and combined display titles
         const rawOwnerMap = {};
         const fullDisplayMap = {};
-        const rosterToNameMap = {}; // Maps Roster ID Directly to Team Name
+        const rosterToNameMap = {}; 
 
         users.forEach(user => {
             const userName = user.display_name || user.username || "Unknown Owner";
@@ -365,11 +438,57 @@ async function loadLeague() {
                 fullDisplayMap[user.user_id] = userName;
             }
         });
-        
-        // Map roster ids to names for table references
+
         rosters.forEach(r => {
             rosterToNameMap[r.roster_id] = fullDisplayMap[r.owner_id] || ("Team " + r.roster_id);
         });
+
+        // --- NEW LIVE SCOREBOARD RENDER BLOCK ---
+        const scoreboardContainer = document.getElementById("scoreboardContainer");
+        scoreboardContainer.innerHTML = "";
+
+        // Group team scores together by matching their matchup_id pairs
+        const matchupPairs = {};
+        (rawMatchups || []).forEach(teamMatchup => {
+            const mId = teamMatchup.matchup_id;
+            if (!mId) return;
+            if (!matchupPairs[mId]) matchupPairs[mId] = [];
+            matchupPairs[mId].push({
+                rosterId: teamMatchup.roster_id,
+                points: teamMatchup.points || 0
+            });
+        });
+
+        // Loop through paired matchups and inject live rows into your grid layout
+        Object.keys(matchupPairs).forEach(mId => {
+            const pair = matchupPairs[mId];
+            if (pair.length < 2) return; // Skip if it's an odd-man out or bye structure
+
+            const team1 = pair[0];
+            const team2 = pair[1];
+            const name1 = rosterToNameMap[team1.rosterId] || `Team ${team1.rosterId}`;
+            const name2 = rosterToNameMap[team2.rosterId] || `Team ${team2.rosterId}`;
+
+            // Highlight who is winning the matchup
+            const leaderClass1 = team1.points > team2.points ? "score-leader" : "";
+            const leaderClass2 = team2.points > team1.points ? "score-leader" : "";
+
+            const matchBox = document.createElement("div");
+            matchBox.className = "matchup-box";
+            matchBox.innerHTML = `
+                <div class="scoreboard-row">
+                    <span class="score-team-name">${name1}</span>
+                    <span class="score-value ${leaderClass1}">${team1.points.toFixed(2)}</span>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="scoreboard-row">
+                    <span class="score-team-name">${name2}</span>
+                    <span class="score-value ${leaderClass2}">${team2.points.toFixed(2)}</span>
+                </div>
+            `;
+            scoreboardContainer.appendChild(matchBox);
+        });
+        // --- END OF LIVE SCOREBOARD RENDER BLOCK ---
 
         // 5. Sort standings by total points scored
         rosters.sort((a,b) => {
