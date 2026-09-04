@@ -262,7 +262,7 @@
             });
     
             // 5. Map settings and parse records / points / FAAB tracking
-            const standings = rosters.map(roster => {
+            const processedStandingsData = rosters.map(roster => {
                 const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
                 
                 // Deduct spent FAAB from the total budget
@@ -289,7 +289,7 @@
             });
     
             // 6. Sort rankings logically by wins, then points for tiebreakers
-            standings.sort((a, b) => {
+            processedStandingsData.sort((a, b) => {
                 if (b.wins !== a.wins) return b.wins - a.wins;
                 return b.pf - a.pf;
             });
@@ -298,7 +298,7 @@
             const tbody = document.querySelector("#standingsTable tbody");
             tbody.innerHTML = "";
             
-            standings.forEach((entry, index) => {
+            processedStandingsData.forEach((entry, index) => {
                 const tr = document.createElement("tr");
                 
                 const rank = index + 1;
@@ -323,6 +323,13 @@
                 `;
                 tbody.appendChild(tr);
             });
+    
+        } catch (error) {
+            console.error("Critical failure during layout render engine flow:", error);
+        }
+    }
+    
+    window.addEventListener('DOMContentLoaded', loadStandings);
 </script>
 </body>
 </html>
