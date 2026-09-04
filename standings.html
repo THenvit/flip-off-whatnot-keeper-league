@@ -184,7 +184,8 @@
                         <th class="col-record">Record</th>
                         <th class="col-pf">Points For</th>
                         <th class="col-faab">FAAB Left</th>
-                        <th class="col-odds">Simulate Win</th>
+                        <th class="col-odds" style="width: 12%;">Playoff %</th>
+                        <th style="text-align: center; width: 12%;">Simulate Win</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -300,21 +301,32 @@
                 ? `${team.wins}-${team.losses}-${team.ties}` 
                 : `${team.wins}-${team.losses}`;
 
-            // Style top 4 teams as playoff locks dynamically
-            let statusBadge = '<span class="playoff-bubble" style="font-size:11px;">Bubble</span>';
-            if (rank <= 4) statusBadge = '<span class="playoff-lock" style="font-size:11px;">Top 4 Lock</span>';
-            if (rank > 8) statusBadge = '<span class="playoff-out" style="font-size:11px;">Out</span>';
+            // Map layout back to percentage probabilities
+            let oddsText = "";
+            let cssClass = "";
+            
+            if (index < 4) {
+                oddsText = "90%+";
+                cssClass = "playoff-lock";
+            } else if (index < 6) {
+                oddsText = "60%-80%";
+                cssClass = "playoff-bubble";
+            } else {
+                oddsText = "<50%";
+                cssClass = "playoff-out";
+            }
 
             // Check if this team was simulated a win to persist the checkbox state
             const wasChecked = checkedMap[team.rosterId] ? "checked" : "";
 
             tr.innerHTML = `
                 <td class="col-rank">${rank}</td>
-                <td class="col-team"><strong>${team.team}</strong> ${statusBadge}</td>
+                <td class="col-team"><strong>${team.team}</strong></td>
                 <td class="col-record" style="${team.simWins > 0 ? 'color: var(--success-color); font-weight: bold;' : ''}">${recordStr}</td>
                 <td class="col-pf">${team.pf.toFixed(2)}</td>
                 <td class="col-faab">$${team.faab}</td>
-                <td class="col-odds" style="text-align: center;">
+                <td class="col-odds" style="text-align: center;"><span class="${cssClass}">${oddsText}</span></td>
+                <td style="text-align: center;">
                     <input type="checkbox" class="sim-toggle" data-roster-id="${team.rosterId}" ${wasChecked} onchange="recalculateAndRender()" style="width:18px; height:18px; cursor:pointer;">
                 </td>
             `;
