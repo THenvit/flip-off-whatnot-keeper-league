@@ -141,9 +141,10 @@
         background-color: #f8fafc;
     }
 
-    .col-team { text-align: left; width: 50%; color: var(--primary); font-size: 0.88rem; word-break: break-word; }
-    .col-record { text-align: center; width: 25%; font-weight: 600; }
-    .col-pf { text-align: right; width: 25%; font-variant-numeric: tabular-nums; }
+    .col-team { text-align: left; width: 40%; color: var(--primary); font-size: 0.88rem; word-break: break-word; }
+    .col-record { text-align: center; width: 20%; font-weight: 600; }
+    .col-pf { text-align: right; width: 20%; font-variant-numeric: tabular-nums; }
+    .col-faab { text-align: center; width: 20%; font-weight: 600; color: #16a34a; }
 
     /* 📱 ULTRALIGHT FLEXIBLE ROSTER DEPTH CHART GRID */
     .roster-grid {
@@ -262,6 +263,7 @@
                         <th class="col-team">Team</th>
                         <th class="col-record">Record</th>
                         <th class="col-pf">PF</th>
+                        <th class="col-faab">FAAB</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -284,6 +286,9 @@
 <script>
 // Global variable loaded dynamically from config.json
 let LEAGUE_ID = "";
+
+// Set your league's total starting FAAB budget 
+const TOTAL_FAAB_BUDGET = 100;
 
 // Helper array to sort roster tables logically by starting positional priority
 const positionOrder = ["QB", "RB", "WR", "TE", "K", "DEF"];
@@ -350,11 +355,16 @@ async function loadLeague() {
             const losses = team.settings?.losses || 0;
             const customDisplayName = fullDisplayMap[team.owner_id] || ("Team " + team.roster_id);
 
+            // Calculate FAAB tracking metrics
+            const faabUsed = team.settings?.waiver_budget_used || 0;
+            const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
+
             standingsBody.innerHTML += `
                 <tr>
                     <td class="col-team"><strong>${customDisplayName}</strong></td>
                     <td class="col-record">${wins}-${losses}</td>
                     <td class="col-pf"><strong>${points.toFixed(2)}</strong></td>
+                    <td class="col-faab">$${faabRemaining}</td>
                 </tr>
             `;
         });
@@ -446,6 +456,7 @@ async function loadLeague() {
 loadLeague();
 setInterval(loadLeague, 300000);
 </script>
+
 
 </body>
 </html>
