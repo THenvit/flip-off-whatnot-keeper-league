@@ -121,11 +121,18 @@ for _ in range(SIMULATIONS):
 
 # 4. Format outputs into a clean JSON export matrix map
 output_odds = {}
+total_wins_recorded = sum(stats["wins"] for stats in team_baselines.values())
+
 for r_id, counts in playoff_appearances.items():
-    pct = (counts / SIMULATIONS) * 100
-    output_odds[str(r_id)] = round(pct, 1)
+    # If no games have been played in the league yet, default everyone to an equal 50.0% split
+    if total_wins_recorded == 0:
+        output_odds[str(r_id)] = 50.0
+    else:
+        pct = (counts / SIMULATIONS) * 100
+        output_odds[str(r_id)] = round(pct, 1)
 
 with open("playoff_odds.json", "w") as f:
     json.dump(output_odds, f, indent=4)
 
 print("Playoff simulation completed successfully! Saved results to playoff_odds.json")
+
