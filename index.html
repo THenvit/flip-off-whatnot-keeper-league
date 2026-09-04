@@ -273,6 +273,27 @@
         </div>
     </div>
 
+    <!-- Live FAAB & Transaction Ledger Card -->
+    <div class="card">
+        <h2>Recent Waivers & Transactions</h2>
+        <div class="table-responsive-wrapper">
+            <table id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; width: 25%;">Type</th>
+                        <th style="text-align: left; width: 45%;">Transaction Details</th>
+                        <th style="text-align: center; width: 15%;">FAAB</th>
+                        <th style="text-align: right; width: 15%;">Team</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading league activity...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
     <!-- Redesigned Depth-Chart Roster Card Grid -->
     <div class="card">
         <h2>Rosters</h2>
@@ -303,26 +324,35 @@ async function loadLeague() {
         if (!LEAGUE_ID) {
             throw new Error("LEAGUE_ID missing from config.json");
         }
-
-        // 2. Construct exact API endpoints securely using standard concatenation
+        // 2. Fetch the current NFL league state to find out what week we are in dynamically
+        const stateRes = await fetch(" https://api.sleeper.app/v1/state/nfl");
+        const stateData = await stateRes.json();
+        // Fallback to week 1 if the season hasn't started yet or returns 0
+        const currentWeek = stateData.display_week || stateData.week || 1; 
+        
+        // 3. Construct exact API endpoints securely using standard concatenation
         const baseUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID;
         const usersUrl = baseUrl + '/users';
         const rostersUrl = baseUrl + '/rosters';
+        const transactionsUrl = baseUrl + '/transactions/' + currentWeek; // Fetches this week's live moves
         const masterPlayersUrl = 'public/players.json'; 
 
-        const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
+        const [usersRes, rostersRes, transactionsRes, masterPlayersRes] = await Promise.all([
             fetch(usersUrl),
             fetch(rostersUrl),
+            fetch(transactionsUrl),
             fetch(masterPlayersUrl)
         ]);
 
         const users = await usersRes.json();
         const rosters = await rostersRes.json();
+        const rawTransactions = await transactionsRes.json();
         const players = await masterPlayersRes.json();
 
-        // 3. Establish owner username maps and combined display titles
+        // 4. Establish owner username maps and combined display titles
         const rawOwnerMap = {};
         const fullDisplayMap = {};
+        const rosterToNameMap = {}; // Maps Roster ID Directly to Team Name
 
         users.forEach(user => {
             const userName = user.display_name || user.username || "Unknown Owner";
@@ -334,15 +364,20 @@ async function loadLeague() {
                 fullDisplayMap[user.user_id] = userName;
             }
         });
+        
+        // Map roster ids to names for table references
+        rosters.forEach(r => {
+            rosterToNameMap[r.roster_id] = fullDisplayMap[r.owner_id] || ("Team " + r.roster_id);
+        });
 
-        // 4. Sort standings by total points scored
+        // 5. Sort standings by total points scored
         rosters.sort((a,b) => {
             const scoreA = (a.settings?.fpts || 0) + ((a.settings?.fpts_decimal || 0) / 100);
             const scoreB = (b.settings?.fpts || 0) + ((b.settings?.fpts_decimal || 0) / 100);
             return scoreB - scoreA;
         });
 
-        // 5. Render the Standings Table
+        // 6. Render the Standings Table
         const standingsBody = document.querySelector("#standings tbody");
         standingsBody.innerHTML = "";
 
@@ -368,8 +403,81 @@ async function loadLeague() {
                 </tr>
             `;
         });
+        
+        // 7. Render the Live FAAB & Transaction Ledger Table
+        const txBody = document.querySelector("#transactionsTable tbody");
+        txBody.innerHTML = "";
 
-        // 6. Render the Redesigned Depth-Chart Roster Cards
+        // Only look at successful completions (waivers, free agent pickups, and trades)
+        const completedTx = (rawTransactions || []).filter(t => t.status === "complete");
+
+        if (completedTx.length === 0) {
+            txBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 15px;">No transactions completed yet for Week ${currentWeek}.</td></tr>`;
+        } else {
+            // Take the 8 most recent moves to keep the homepage table clean
+            completedTx.slice(0, 8).forEach(tx => {
+                let txType = tx.type.toUpperCase(); // "WAIVER", "FREE_AGENT", or "TRADE"
+                let detailsText = "";
+                let faabDisplay = "—";
+                let executionTeam = "Multi-Team";
+
+                // Format text if it's a Waiver or Free Agent move
+                if (txType === "WAIVER" || txType === "FREE_AGENT") {
+                    const primaryRosterId = tx.roster_ids[0];
+                    executionTeam = rosterToNameMap[primaryRosterId] || "Unknown Team";
+                    
+                    let addedNames = [];
+                    let droppedNames = [];
+
+                    if (tx.adds) {
+                        Object.keys(tx.adds).forEach(pId => {
+                            const p = players[pId];
+                            addedNames.push(p ? `${p.first_name[0]}. ${p.last_name} (${p.position})` : `Player ${pId}`);
+                        });
+                    }
+                    if (tx.drops) {
+                        Object.keys(tx.drops).forEach(pId => {
+                            const p = players[pId];
+                            droppedNames.push(p ? `${p.first_name[0]}. ${p.last_name}` : `Player ${pId}`);
+                        });
+                    }
+
+                    if (addedNames.length > 0 && droppedNames.length > 0) {
+                        detailsText = `Added <strong>${addedNames.join(', ')}</strong>, Dropped ${droppedNames.join(', ')}`;
+                    } else if (addedNames.length > 0) {
+                        detailsText = `Picked up <strong>${addedNames.join(', ')}</strong>`;
+                    } else if (droppedNames.length > 0) {
+                        detailsText = `Dropped ${droppedNames.join(', ')}`;
+                    }
+
+                    // Check if it's a Waiver bid with FAAB attached
+                    if (tx.settings && tx.settings.waiver_bid !== undefined) {
+                        faabDisplay = `$${tx.settings.waiver_bid}`;
+                    } else if (txType === "FREE_AGENT") {
+                        faabDisplay = "$0";
+                    }
+                    
+                    if (txType === "FREE_AGENT") txType = "Free Agent";
+                    if (txType === "WAIVER") txType = "📝 Waiver Claim";
+
+                } else if (txType === "TRADE") {
+                    txType = "🤝 Trade Completed";
+                    detailsText = "Players and/or draft assets exchanged between managers.";
+                    faabDisplay = "—";
+                }
+
+                txBody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: 600; font-size: 0.88rem; color: var(--text-muted);">${txType}</td>
+                        <td style="font-size: 0.9rem;">${detailsText}</td>
+                        <td style="text-align: center; font-weight: bold; color: ${faabDisplay !== '—' && faabDisplay !== '$0' ? 'var(--success-color)' : 'var(--text-main)'};">${faabDisplay}</td>
+                        <td style="text-align: right; font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${executionTeam}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 8. Render the Redesigned Depth-Chart Roster Cards
         const rosterContainer = document.getElementById("rosters");
         rosterContainer.innerHTML = "";
 
