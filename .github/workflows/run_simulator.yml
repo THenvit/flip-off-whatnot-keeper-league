@@ -1,0 +1,34 @@
+name: Run Playoff Simulator
+
+on:
+  schedule:
+    # This runs the script automatically every Tuesday morning at 8:00 AM UTC (After week wraps up)
+    - cron: '0 8 * * 2'
+  workflow_dispatch: # This allows you to also click a "Play" button in GitHub to run it manually anytime
+
+jobs:
+  update-odds:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: |
+        pip install numpy
+
+    - name: Run Monte Carlo Simulation
+      run: python playoff_simulator.py
+
+    - name: Commit and Push Updated Odds File
+      run: |
+        git config --global user.name "GitHub Action Bot"
+        git config --global user.email "actions@github.com"
+        git add playoff_odds.json
+        git commit -m "Auto-updated playoff simulation odds matrix" || exit 0
+        git push
