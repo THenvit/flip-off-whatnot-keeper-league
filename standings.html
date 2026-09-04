@@ -135,11 +135,13 @@
         }
     
         /* Column Sizing and Alignments */
-        .col-rank { text-align: center; width: 10%; }
-        .col-team { text-align: left; width: 40%; color: var(--primary); }
-        .col-record { text-align: center; width: 15%; font-weight: 600; }
+        .col-rank { text-align: center; width: 8%; }
+        .col-team { text-align: left; width: 34%; color: var(--primary); }
+        .col-record { text-align: center; width: 13%; font-weight: 600; }
         .col-pf { text-align: right; width: 15%; font-variant-numeric: tabular-nums; font-weight: 500; }
-        .col-odds { text-align: center; width: 20%; }
+        .col-faab { text-align: center; width: 15%; font-weight: 600; color: var(--success-color); }
+        .col-odds { text-align: center; width: 15%; }
+
     
         /* High-Contrast Standings Odds Indicators */
         .playoff-lock { color: var(--success-color); font-weight: bold; }
@@ -180,6 +182,7 @@
                         <th class="col-team">Team</th>
                         <th class="col-record">Record</th>
                         <th class="col-pf">Points For</th>
+                        <th class="col-faab">FAAB Remaining</th>
                         <th class="col-odds">Playoff Odds</th>
                     </tr>
                 </thead>
@@ -193,7 +196,10 @@
     <script>
     // Global runtime league variable pulled dynamically from config.json
     let LEAGUE_ID = "";
-    
+    // Set your league's total starting FAAB budget here:    
+    const TOTAL_FAAB_BUDGET = 100;
+
+        
     async function loadStandings(){
         try {
             // 1. Fetch dynamic config.json requirements
@@ -225,16 +231,24 @@
                 }
             });
     
-            // 4. Map settings and clear point fraction errors
-            const standings = rosters.map(roster => {
+            // 4. Map settings and parse records / points / FAAB tracking
+            let standings = rosters.map(roster => {
                 const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
+                
+                // Sleeper tracks spent budget. Deducting it from total budget provides the remainder.
+                const faabUsed = roster.settings?.waiver_budget_used || 0;
+                const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
+
                 return {
                     team: fullDisplayMap[roster.owner_id] || ("Team " + roster.roster_id),
                     wins: roster.settings?.wins || 0,
                     losses: roster.settings?.losses || 0,
-                    pf: pf
+                    ties: roster.settings?.ties || 0,
+                    pf: pf,
+                    faab: faabRemaining
                 };
             });
+
     
             // 5. Sort rankings logically by wins, then points for tiebreakers
             standings.sort((a,b) => {
@@ -263,14 +277,13 @@
                     cssClass = "playoff-out";
                 }
     
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="col-rank">${index + 1}</td>
-                        <td class="col-team"><strong>${team.team}</strong></td>
-                        <td class="col-record">${team.wins}-${team.losses}</td>
-                        <td class="col-pf"><strong>${team.pf.toFixed(2)}</strong></td>
-                        <td class="col-odds ${cssClass}">${odds}</td>
-                    </tr>
+                tr.innerHTML = `
+                    <td class="col-rank">${rank}</td>
+                    <td class="col-team">${entry.team}</td>
+                    <td class="col-record">${recordStr}</td>
+                    <td class="col-pf">${entry.pf.toFixed(2)}</td>
+                    <td class="col-faab">$${entry.faab}</td>
+                    <td class="col-odds">${playoffTag}</td>
                 `;
             });
         } catch (err) {
