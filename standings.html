@@ -183,8 +183,8 @@
                         <th class="col-team">Team</th>
                         <th class="col-record">Record</th>
                         <th class="col-pf">Points For</th>
-                        <th class="col-faab">FAAB Remaining</th>
-                        <th class="col-odds">Playoff Odds</th>
+                        <th class="col-faab">FAAB Left</th>
+                        <th class="col-odds">Simulate Win</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -199,7 +199,9 @@
     let LEAGUE_ID = "";
     // Set your league's total starting FAAB budget here:    
     const TOTAL_FAAB_BUDGET = 100;
-
+    // Master array to hold baseline stats so toggles don't cause permanent distortion
+    let baselineStandings = [];
+    
         
     async function loadStandings(){
         try {
@@ -221,7 +223,7 @@
                 fetch(rostersUrl).then(r=>r.json())
             ]);
     
-            // 3. Establish structured parenthetical title combinations
+// 3. Establish structured parenthetical title combinations
             const fullDisplayMap = {};
             users.forEach(user => {
                 const userName = user.display_name || user.username || "Unknown Owner";
@@ -232,81 +234,95 @@
                 }
             });
     
-            // 4. Map settings and parse records / points / FAAB tracking
-            let standings = rosters.map(roster => {
+ // 4. Map settings and parse records / points / FAAB tracking
+            baselineStandings = rosters.map(roster => {
                 const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
-                
-                // Sleeper tracks spent budget. Deducting it from total budget provides the remainder.
                 const faabUsed = roster.settings?.waiver_budget_used || 0;
                 const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
 
                 return {
+                    rosterId: roster.roster_id,
                     team: fullDisplayMap[roster.owner_id] || ("Team " + roster.roster_id),
                     wins: roster.settings?.wins || 0,
                     losses: roster.settings?.losses || 0,
                     ties: roster.settings?.ties || 0,
                     pf: pf,
-                    faab: faabRemaining
+                    faab: faabRemaining,
+                    simWins: 0 // Placeholder tracker for playoff machine adjustments
                 };
             });
-
     
-                 // 5. Sort rankings logically by wins, then points for tiebreakers
-      standings.sort((a,b) => {
-          if (b.wins !== a.wins) {
-              return b.wins - a.wins;
-          }
-          return b.pf - a.pf;
-      });
+            // Initial table generation loop pass
+            recalculateAndRender();
+    
+        } catch (error) {
+            console.error("Critical failure during layout render engine flow:", error);
+        }
+    }
+    function recalculateAndRender() {
+        // Deep clone the baseline dataset array structures cleanly 
+        let currentStandings = baselineStandings.map(t => ({ ...t }));
 
-      const tbody = document.querySelector("#standingsTable tbody");
-      tbody.innerHTML = "";
+        // Loop through all checkboxes to find added simulation check marks
+        const checkboxes = document.querySelectorAll(".sim-toggle");
+        checkboxes.forEach(box => {
+            if (box.checked) {
+                const rId = parseInt(box.dataset.rosterId);
+                const teamObj = currentStandings.find(t => t.rosterId === rId);
+                if (teamObj) {
+                    teamObj.wins += 1; // Simulate an added win
+                    teamObj.simWins = 1; // Remember the state for UI generation
+                }
+            }
+        });
 
-      // 6. Generate rows and assign playoff text indicators
-      standings.forEach((team, index) => {
-          let odds;
-          let cssClass;
-          
-          if (index < 4) {
-              odds = "90%+";
-              cssClass = "playoff-lock";
-          } else if (index < 6) {
-              odds = "60%-80%";
-              cssClass = "playoff-bubble";
-          } else {
-              odds = "<50%";
-              cssClass = "playoff-out";
-          }
+        // 5. Sort rankings logically by wins, then points for tiebreakers
+        currentStandings.sort((a, b) => {
+            const totalWinsA = a.wins;
+            const totalWinsB = b.wins;
+            if (totalWinsB !== totalWinsA) return totalWinsB - totalWinsA;
+            return b.pf - a.pf;
+        });
 
-          // Create the row element
-          const tr = document.createElement("tr");
+        // 6. Dom injection loop rendering elements into viewport
+        const tbody = document.querySelector("#standingsTable tbody");
+        
+        // Save which boxes were checked before clearing the innerHTML space
+        const checkedMap = {};
+        checkboxes.forEach(box => { checkedMap[box.dataset.rosterId] = box.checked; });
+        
+        tbody.innerHTML = "";
+        
+        currentStandings.forEach((team, index) => {
+            const tr = document.createElement("tr");
+            const rank = index + 1;
+            const recordStr = team.ties > 0 
+                ? `${team.wins}-${team.losses}-${team.ties}` 
+                : `${team.wins}-${team.losses}`;
 
-          // Calculate rank and construct the record string
-          const rank = index + 1;
-          const recordStr = team.ties > 0 
-              ? `${team.wins}-${team.losses}-${team.ties}` 
-              : `${team.wins}-${team.losses}`;
+            // Style top 4 teams as playoff locks dynamically
+            let statusBadge = '<span class="playoff-bubble" style="font-size:11px;">Bubble</span>';
+            if (rank <= 4) statusBadge = '<span class="playoff-lock" style="font-size:11px;">Top 4 Lock</span>';
+            if (rank > 8) statusBadge = '<span class="playoff-out" style="font-size:11px;">Out</span>';
 
-          tr.innerHTML = `
-              <td class="col-rank">${rank}</td>
-              <td class="col-team">${team.team}</td>
-              <td class="col-record">${recordStr}</td>
-              <td class="col-pf">${team.pf.toFixed(2)}</td>
-              <td class="col-faab">$${team.faab}</td>
-              <td class="col-odds"><span class="${cssClass}">${odds}</span></td>
-          `;
-          
-          // Append the row to the table body
-          tbody.appendChild(tr);
-      });
-  } catch (err) {
-      console.error("Standings engine parsing failure:", err);
-  }
-}
-    // Fire engine functions on load and refresh on a 5-minute loop
-    loadStandings();
-    setInterval(loadStandings, 300000);
-    </script>
+            // Check if this team was simulated a win to persist the checkbox state
+            const wasChecked = checkedMap[team.rosterId] ? "checked" : "";
 
+            tr.innerHTML = `
+                <td class="col-rank">${rank}</td>
+                <td class="col-team"><strong>${team.team}</strong> ${statusBadge}</td>
+                <td class="col-record" style="${team.simWins > 0 ? 'color: var(--success-color); font-weight: bold;' : ''}">${recordStr}</td>
+                <td class="col-pf">${team.pf.toFixed(2)}</td>
+                <td class="col-faab">$${team.faab}</td>
+                <td class="col-odds" style="text-align: center;">
+                    <input type="checkbox" class="sim-toggle" data-roster-id="${team.rosterId}" ${wasChecked} onchange="recalculateAndRender()" style="width:18px; height:18px; cursor:pointer;">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadStandings);
+</script>
 </body>
 </html>
