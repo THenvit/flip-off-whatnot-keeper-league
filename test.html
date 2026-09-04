@@ -220,12 +220,10 @@
             const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
             const playoffOddsUrl = 'playoff_odds.json'; // Handles pre-calculated percentage maps
 
-            const [users, rosters, liveOdds] = await Promise.all([
+            const [users, rosters] = await Promise.all([
                 fetch(usersUrl).then(r=>r.json()),
-                fetch(rostersUrl).then(r=>r.json()),
-                fetch(playoffOddsUrl).then(r=>r.json()).catch(() => ({})) // Graceful empty dictionary fallback if script hasn't run yet
+                fetch(rostersUrl).then(r=>r.json())
             ]);
-    
                 // 3. Isolated safety net fetch for our background playoff odds file
             let liveOdds = {};
             try {
