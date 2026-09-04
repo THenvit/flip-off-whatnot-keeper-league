@@ -195,15 +195,16 @@
         </div>
     </div>
 </div>
-    <script>
-    // Global runtime league variable pulled dynamically from config.json
+<script>
+     // Global runtime league variable pulled dynamically from config.json
     let LEAGUE_ID = "";
-    // Set your league's total starting FAAB budget here:    
+    
+    // Set your league's total starting FAAB budget here (Sleeper default is usually 100)
     const TOTAL_FAAB_BUDGET = 100;
+    
     // Master array to hold baseline stats so toggles don't cause permanent distortion
     let baselineStandings = [];
     
-        
     async function loadStandings(){
         try {
             // 1. Fetch dynamic config.json requirements
@@ -215,16 +216,29 @@
                 throw new Error("LEAGUE_ID variable missing from config.json.");
             }
     
-            // 2. Query data assets concurrently
+            // 2. Query core Sleeper API data assets concurrently
             const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
             const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
-    
+          //  const playoffOddsUrl = 'playoff_odds.json'; // Handles pre-calculated percentage maps
+            
             const [users, rosters] = await Promise.all([
                 fetch(usersUrl).then(r=>r.json()),
                 fetch(rostersUrl).then(r=>r.json())
             ]);
+
+            // 3. Isolated safety net fetch for our background playoff odds file
+            let liveOdds = {};
+            try {
+                const playoffOddsUrl = 'playoff_odds.json?t=' + new Date().getTime();
+                const oddsRes = await fetch(playoffOddsUrl);
+                if (oddsRes.ok) {
+                    liveOdds = await oddsRes.json();
+                }
+            } catch (oddsErr) {
+                console.warn("Playoff odds file not ready or empty yet. Using fallbacks.", oddsErr);
+            }
     
-// 3. Establish structured parenthetical title combinations
+            // 4. Establish structured parenthetical title combinations
             const fullDisplayMap = {};
             users.forEach(user => {
                 const userName = user.display_name || user.username || "Unknown Owner";
@@ -235,11 +249,21 @@
                 }
             });
     
- // 4. Map settings and parse records / points / FAAB tracking
+            // 5. Map settings and parse records / points / FAAB tracking
             baselineStandings = rosters.map(roster => {
                 const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
+                
+                // Deduct spent FAAB from the total budget
                 const faabUsed = roster.settings?.waiver_budget_used || 0;
                 const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
+
+                const stringRosterId = String(roster.roster_id);
+                
+                // Keep the baseline odds as a raw floating number for interactive calculations
+                let numericOdds = 50.0;
+                if (liveOdds && liveOdds[stringRosterId] !== undefined) {
+                    numericOdds = parseFloat(liveOdds[stringRosterId]);
+                }
 
                 return {
                     rosterId: roster.roster_id,
@@ -249,91 +273,114 @@
                     ties: roster.settings?.ties || 0,
                     pf: pf,
                     faab: faabRemaining,
-                    simWins: 0 // Placeholder tracker for playoff machine adjustments
+                    baseOdds: numericOdds,
+                    simWins: 0
                 };
             });
+
+            // Insert a clean disclaimer notice right above our layout table body container dynamically
+            const tableEl = document.getElementById("standingsTable");
+            if (tableEl && !document.getElementById("machineDisclaimer")) {
+                const notice = document.createElement("div");
+                notice.id = "machineDisclaimer";
+                notice.style.fontSize = "12px";
+                notice.style.color = "var(--text-muted)";
+                notice.style.background = "#f8fafc";
+                notice.style.padding = "8px 12px";
+                notice.style.borderRadius = "6px";
+                notice.style.marginBottom = "12px";
+                notice.style.border = "1px solid var(--border-color)";
+                notice.style.fontStyle = "italic";
+                notice.innerHTML = "💡 <strong>Playoff Machine Mode:</strong> Checking 'Simulate Win' shifts table rankings and adds a visual +15% boost to that team's odds. True percentages recalculate every Tuesday after Matchup Results clear via backend simulations.";
+                tableEl.parentNode.insertBefore(notice, tableEl);
+            }
     
-            // Initial table generation loop pass
+            // Initial call to render everything into the viewport
             recalculateAndRender();
     
         } catch (error) {
             console.error("Critical failure during layout render engine flow:", error);
         }
     }
+
     function recalculateAndRender() {
         // Deep clone the baseline dataset array structures cleanly 
-        let currentStandings = baselineStandings.map(t => ({ ...t }));
+        let currentStandings = baselineStandings.map(t => ({ ...t, currentOdds: t.baseOdds }));
 
-        // Loop through all checkboxes to find added simulation check marks
+        // 1. First Pass: Apply simulated wins and find out who is boosted
+        let activeBoostsCount = 0;
         const checkboxes = document.querySelectorAll(".sim-toggle");
-        checkboxes.forEach(box => {
+        
+        // Save which boxes were checked before clearing the innerHTML space
+        const checkedMap = {};
+        checkboxes.forEach(box => { 
+            checkedMap[box.dataset.rosterId] = box.checked; 
             if (box.checked) {
                 const rId = parseInt(box.dataset.rosterId);
                 const teamObj = currentStandings.find(t => t.rosterId === rId);
                 if (teamObj) {
-                    teamObj.wins += 1; // Simulate an added win
-                    teamObj.simWins = 1; // Remember the state for UI generation
+                    teamObj.wins += 1;
+                    teamObj.simWins = 1;
+                    teamObj.currentOdds = Math.min(100, teamObj.baseOdds + 15.0); // Boost odds
+                    activeBoostsCount++;
                 }
             }
         });
 
-        // 5. Sort rankings logically by wins, then points for tiebreakers
+        // 2. Second Pass: Dribble down and scale unselected teams down to offset the added boost inflation
+        if (activeBoostsCount > 0 && currentStandings.length > activeBoostsCount) {
+            const totalBoostInjected = activeBoostsCount * 15.0;
+            const unselectedCount = currentStandings.length - activeBoostsCount;
+            const reductionShare = totalBoostInjected / unselectedCount;
+
+            currentStandings.forEach(team => {
+                if (team.simWins === 0) {
+                    team.currentOdds = Math.max(0, team.baseOdds - reductionShare); // Reduce odds proportionally
+                }
+            });
+        }
+
+        // 3. Sort rankings logically by wins, then points for tiebreakers
         currentStandings.sort((a, b) => {
-            const totalWinsA = a.wins;
-            const totalWinsB = b.wins;
-            if (totalWinsB !== totalWinsA) return totalWinsB - totalWinsA;
+            if (b.wins !== a.wins) return b.wins - a.wins;
             return b.pf - a.pf;
         });
 
-        // 6. Dom injection loop rendering elements into viewport
+        // 4. Dom injection loop rendering elements into viewport
         const tbody = document.querySelector("#standingsTable tbody");
-        
-        // Save which boxes were checked before clearing the innerHTML space
-        const checkedMap = {};
-        checkboxes.forEach(box => { checkedMap[box.dataset.rosterId] = box.checked; });
-        
         tbody.innerHTML = "";
         
-        currentStandings.forEach((team, index) => {
+        currentStandings.forEach((entry, index) => {
             const tr = document.createElement("tr");
-            const rank = index + 1;
-            const recordStr = team.ties > 0 
-                ? `${team.wins}-${team.losses}-${team.ties}` 
-                : `${team.wins}-${team.losses}`;
-
-            // Map layout back to percentage probabilities
-            let oddsText = "";
-            let cssClass = "";
             
-            if (index < 4) {
-                oddsText = "90%+";
-                cssClass = "playoff-lock";
-            } else if (index < 6) {
-                oddsText = "60%-80%";
-                cssClass = "playoff-bubble";
-            } else {
-                oddsText = "<50%";
-                cssClass = "playoff-out";
-            }
+            const rank = index + 1;
+            const recordStr = entry.ties > 0 
+                ? `${entry.wins}-${entry.losses}-${entry.ties}` 
+                : `${entry.wins}-${entry.losses}`;
 
-            // Check if this team was simulated a win to persist the checkbox state
-            const wasChecked = checkedMap[team.rosterId] ? "checked" : "";
+            // Apply pill color definitions cleanly based on percentage probability thresholds
+            const oddsDisplayStr = entry.currentOdds.toFixed(1) + "%";
+            let cssClass = "playoff-bubble";
+            if (entry.currentOdds >= 80.0) cssClass = "playoff-lock";
+            else if (entry.currentOdds <= 25.0) cssClass = "playoff-out";
+
+            const wasChecked = checkedMap[entry.rosterId] ? "checked" : "";
 
             tr.innerHTML = `
                 <td class="col-rank">${rank}</td>
-                <td class="col-team"><strong>${team.team}</strong></td>
-                <td class="col-record" style="${team.simWins > 0 ? 'color: var(--success-color); font-weight: bold;' : ''}">${recordStr}</td>
-                <td class="col-pf">${team.pf.toFixed(2)}</td>
-                <td class="col-faab">$${team.faab}</td>
-                <td class="col-odds" style="text-align: center;"><span class="${cssClass}">${oddsText}</span></td>
+                <td class="col-team">${entry.team}</td>
+                <td class="col-record" style="${entry.simWins > 0 ? 'color: var(--success-color); font-weight: bold;' : ''}">${recordStr}</td>
+                <td class="col-pf">${entry.pf.toFixed(2)}</td>
+                <td class="col-faab">$${entry.faab}</td>
+                <td class="col-odds" style="text-align: center;"><span class="${cssClass}">${oddsDisplayStr}</span></td>
                 <td style="text-align: center;">
-                    <input type="checkbox" class="sim-toggle" data-roster-id="${team.rosterId}" ${wasChecked} onchange="recalculateAndRender()" style="width:18px; height:18px; cursor:pointer;">
+                    <input type="checkbox" class="sim-toggle" data-roster-id="${entry.rosterId}" ${wasChecked} onchange="recalculateAndRender()" style="width:18px; height:18px; cursor:pointer;">
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
-
+    
     window.addEventListener('DOMContentLoaded', loadStandings);
 </script>
 </body>
