@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>All-Play Power Rankings - Flip Off Whatnot</title>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #1e3a8a;
+            --accent: #3b82f6;
+            --success-color: #16a34a;
+        }
+    
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding-top: 60px;
+        }
+    
+        .nav-bar {
+            background: #0f172a;
+            padding: 0 10px;
+            height: 50px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+    
+        .nav-bar::-webkit-scrollbar {
+            display: none;
+        }
+    
+        .nav-bar a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+    
+        .nav-bar a:hover, .nav-bar a.active {
+            color: #ffffff;
+            background: var(--accent);
+        }
+    
+        .container {
+            max-width: 1000px;
+            margin: 15px auto;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+    
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+    
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            width: 100%;
+        }
+    
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 6px;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+    
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            padding: 14px 12px;
+            font-weight: bold;
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+        }
+    
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+    
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+    
+        .col-rank { text-align: center; width: 10%; font-weight: bold; }
+        .col-team { text-align: left; width: 40%; color: var(--primary); font-weight: 600; }
+        .col-allplay { text-align: center; width: 20%; font-weight: bold; color: var(--accent); }
+        .col-pct { text-align: center; width: 15%; font-variant-numeric: tabular-nums; }
+        .col-real { text-align: right; width: 15%; color: var(--text-muted); }
+    
+        @media(min-width: 680px) {
+            .container { margin: 30px auto; padding: 0 20px; }
+            h1 { font-size: 1.8rem; }
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+
+  <body>
+ 
+<div class="nav-bar">
+    <a href="index.html">Home Page</a>
+    <a href="keepers.html">Keeper Tracker</a>
+    <a href="standings.html">Standings</a>
+    <a href="power-rankings.html" class="active">Power Rankings</a>
+    <a href="rules.html">League Rules</a>
+    <a href="team-stat-page.html">Team Rosters</a>
+    <a href="history.html">League History</a>
+</div>
+ 
+<div class="container">
+    <h1>📊 All-Play Power Rankings</h1>
+    <div class="subtitle">What your record would look like if you played every league manager, every single week.</div>
+    
+    <div class="card">
+        <div class="table-responsive-wrapper">
+            <table id="powerTable">
+                <thead>
+                    <tr>
+                        <th class="col-rank">PR</th>
+                        <th class="col-team">Team</th>
+                        <th class="col-allplay">All-Play Record</th>
+                        <th class="col-pct">Win %</th>
+                        <th class="col-real">Actual Rec</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" id="statusMessage" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                            Analyzing season matchups and processing score data stream...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <script>
+    let LEAGUE_ID = "";
+
+    async function loadPowerRankings() {
+        const statusEl = document.getElementById("statusMessage");
+        try {
+            // 1. Fetch Config
+            const configRes = await fetch("config.json");
+            const configData = await configRes.json();
+            LEAGUE_ID = configData.LEAGUE_ID;
+
+            if (!LEAGUE_ID) throw new Error("LEAGUE_ID missing from config.json.");
+
+            // 2. Fetch Base League Info
+        const baseUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID;
+        const usersUrl = baseUrl + '/users';
+        const rostersUrl = baseUrl + '/rosters';
+        const stateUrl = 'https://api.sleeper.app/v1/state/nfl';
+
+            const [users, rosters, nflState] = await Promise.all([
+                fetch(usersUrl).then(r => r.json()),
+                fetch(rostersUrl).then(r => r.json()),
+                fetch(stateUrl).then(r => r.json())
+            ]);
+
+            // Map Owner Names
+            const fullDisplayMap = {};
+            users.forEach(user => {
+                const userName = user.display_name || user.username || "Unknown Owner";
+                fullDisplayMap[user.user_id] = user.metadata?.team_name 
+                    ? `${user.metadata.team_name} (${userName})` 
+                    : userName;
+            });
+
+            // Initialize Power Rankings Objects for each Roster ID
+            const powerStats = {};
+            rosters.forEach(r => {
+                const wins = r.settings?.wins || 0;
+                const losses = r.settings?.losses || 0;
+                const ties = r.settings?.ties || 0;
+                
+                powerStats[r.roster_id] = {
+                    teamName: fullDisplayMap[r.owner_id] || ("Team " + r.roster_id),
+                    actualRecord: ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`,
+                    allPlayWins: 0,
+                    allPlayLosses: 0,
+                    allPlayTies: 0
+                };
+            });
+
+            // 3. Loop through completed weeks up to the current week
+            const currentWeek = nflState.display_week || nflState.week || 1;
+            const matchupPromises = [];
+
+            // Pull matchup datasets concurrently for all historical weeks
+            for (let w = 1; w < currentWeek; w++) {
+                matchupPromises.push(
+                    fetch(`https://sleeper.app${LEAGUE_ID}/matchups/${w}`)
+                        .then(res => res.json())
+                        .catch(() => [])
+                );
+            }
+
+            const allWeeksMatchups = await Promise.all(matchupPromises);
+
+            // 4. Run the All-Play Matrix Math Tally
+            allWeeksMatchups.forEach(weekMatchups => {
+                const activeMatchups = (weekMatchups || []).filter(m => m.roster_id);
+                if (activeMatchups.length === 0) return;
+
+                // Compare every team head-to-head against every other team for this week
+                for (let i = 0; i < activeMatchups.length; i++) {
+                    const teamA = activeMatchups[i];
+                    const scoreA = teamA.points || 0;
+
+                    for (let j = 0; j < activeMatchups.length; j++) {
+                        if (i === j) continue; // Skip playing yourself
+                        const teamB = activeMatchups[j];
+                        const scoreB = teamB.points || 0;
+
+                        if (scoreA > scoreB) {
+                            powerStats[teamA.roster_id].allPlayWins++;
+                        } else if (scoreA < scoreB) {
+                            powerStats[teamA.roster_id].allPlayLosses++;
+                        } else {
+                            powerStats[teamA.roster_id].allPlayTies++;
+                        }
+                    }
+                }
+            });
+
+            // 5. Convert compiled stats to an array and calculate Win Percentages
+            const rankingArray = Object.keys(powerStats).map(rosterId => {
+                const s = powerStats[rosterId];
+                const totalGames = s.allPlayWins + s.allPlayLosses + s.allPlayTies;
+                const winPct = totalGames > 0 
+                    ? ((s.allPlayWins + (s.allPlayTies * 0.5)) / totalGames) * 100 
+                    : 0;
+
+                return { ...s, winPct: winPct };
+            });
+
+            // Sort rankings by highest All-Play Win Percentage
+            rankingArray.sort((a, b) => b.winPct - a.winPct);
+
+            // 6. Inject the populated data into the UI
+            const tbody = document.querySelector("#powerTable tbody");
+            tbody.innerHTML = "";
+
+            if (rankingArray.length === 0 || (rankingArray[0].allPlayWins === 0 && rankingArray[0].allPlayLosses === 0)) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 15px;">No matchups have been finalized yet to compile Power Rankings. Check back after Week 1!</td></tr>`;
+                return;
+            }
+
+            rankingArray.forEach((team, index) => {
+                const tr = document.createElement("tr");
+                const allPlayRecordStr = team.allPlayTies > 0 
+                    ? `${team.allPlayWins}-${team.allPlayLosses}-${team.allPlayTies}` 
+                    : `${team.allPlayWins}-${team.allPlayLosses}`;
+
+                tr.innerHTML = `
+                    <td class="col-rank">#${index + 1}</td>
+                    <td class="col-team">${team.teamName}</td>
+                    <td class="col-allplay">${allPlayRecordStr}</td>
+                    <td class="col-pct">${team.winPct.toFixed(1)}%</td>
+                    <td class="col-real">${team.actualRecord}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error("Power Rankings parser engine failed:", error);
+            if (statusEl) statusEl.innerText = "Error compiling historical records. Verify configuration formats.";
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadPowerRankings);
+</script>
+</body>
+</html>
