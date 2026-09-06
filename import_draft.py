@@ -29,7 +29,7 @@ print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
 rosters_list = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
 
-# 2. LOCAL FILE READ: Open your local master player data and your EXISTING history log
+# 2. LOCAL FILE READ: Open your local master player data and your BACKUP history log
 print("Loading local public/players.json database track...")
 try:
     with open("public/players.json", "r") as f:
@@ -38,12 +38,13 @@ except Exception as e:
     print(f"Error loading local public/players.json: {e}")
     master_players = {}
 
-print("Loading existing roster-history.json database layer...")
+# ANCHOR POINT: Read directly from your permanent roster-history_SAVED.json file
+print("Loading permanent historical baseline from roster-history_SAVED.json...")
 try:
     with open("roster-history_SAVED.json", "r") as f:
         existing_history = json.load(f) or {}
 except Exception as e:
-    print(f"Warning: No existing roster-history.json found or file empty. Starting clean matrix map.")
+    print(f"Warning: Could not find roster-history_SAVED.json. Starting clean matrix map.")
     existing_history = {}
 
 # Validate drafts structure
@@ -51,13 +52,12 @@ if not drafts_list:
     print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
-# FIXED DRAFT LIST PARSING: Safely navigate python list array bracket layers
+# FIXED DRAFT LIST PARSING: Safely target the first draft configuration in the array list
 if isinstance(drafts_list, list):
     if len(drafts_list) == 0:
         print("Error: Sleeper returned an empty drafts list.")
         exit(1)
-    # Grab the first draft dictionary object out of the list before using .get()
-    main_draft_id = drafts_list[0].get("draft_id")
+    main_draft_id = drafts_list[0].get("draft_id")  # Fixed index pointer assignment
 else:
     main_draft_id = drafts_list.get("draft_id")
 
@@ -106,18 +106,14 @@ for roster in rosters_list:
         draft_round = pick_info.get("round", None)
         is_currently_keeper = pick_info.get("is_keeper", False)
         
-        # Look up what their count was LAST season inside your old JSON file
+        # Look up what their count was LAST season inside your SAVED JSON file
         previous_player_record = existing_history.get(p_id_str) or {}
         previous_keeper_count = previous_player_record.get("keeper_count", 0)
 
         # --- ADVANCED ACCUMULATOR FORMULA ---
-        # A player is a consecutive keeper if:
-        # 1. Sleeper explicitly marks them as a keeper this year
-        # OR 2. They were a keeper last year (count > 0) AND their draft round is not None (meaning they are still rostered/drafted)
         if is_currently_keeper or (previous_keeper_count > 0 and draft_round is not None):
             updated_keeper_count = previous_keeper_count + 1
         else:
-            # If they were drafted completely fresh or picked up via free agency, reset to 1 if it's their first year kept
             updated_keeper_count = 1 if is_currently_keeper else 0
 
         # Build the exact dictionary structure
@@ -130,7 +126,7 @@ for roster in rosters_list:
             "keeper_count": updated_keeper_count
         }
 
-# 5. Export to your static JSON database file
+# 5. Export to your static JSON database file (Website targets this file path)
 with open("roster-history.json", "w") as f:
     json.dump(draft_history_map, f, indent=4)
 
