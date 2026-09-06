@@ -110,11 +110,21 @@ for roster in rosters_list:
         previous_player_record = existing_history.get(p_id_str) or {}
         previous_keeper_count = previous_player_record.get("keeper_count", 0)
 
-        # --- ADVANCED ACCUMULATOR FORMULA ---
-        if is_currently_keeper or (previous_keeper_count > 0 and draft_round is not None):
-            updated_keeper_count = previous_keeper_count + 1
+
+        # --- SMART DUAL ACCUMULATOR FORMULA ---
+        # A player's keeper count should ONLY increment if they were officially kept AGAIN this year.
+        if is_currently_keeper:
+            # If they were already a keeper last year, they are now a 2nd (or 3rd) year keeper!
+            if previous_keeper_count > 0:
+                updated_keeper_count = previous_keeper_count + 1
+            else:
+                # If they are a brand new keeper this season, they start at 1
+                updated_keeper_count = 1
         else:
-            updated_keeper_count = 1 if is_currently_keeper else 0
+            # If they were drafted regularly from the open pool or picked up on waivers, 
+            # their consecutive keeper streak is broken and resets completely to 0!
+            updated_keeper_count = 0
+
 
         # Build the exact dictionary structure
         draft_history_map[p_id_str] = {
