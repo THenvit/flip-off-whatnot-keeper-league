@@ -26,7 +26,7 @@ def fetch_json(url):
 print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 
 # Fetch all required live data feeds concurrently
-drafts_list = fetch_json(f"hhttps://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
+drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
 rosters_list = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
 
 # 2. LOCAL FILE READ: Open your local master player data and your EXISTING history log
