@@ -17,7 +17,7 @@ if not LEAGUE_ID:
 def fetch_json(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with urllib.request.urlopen(req, timeout=15) as r:
             return json.loads(r.read().decode())
     except Exception as e:
         print(f"Error calling {url}: {e}")
@@ -27,15 +27,25 @@ print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 
 # Fetch all required data feeds concurrently
 drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
-rosters_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
-master_players = fetch_json("public/players.json") or {}
+rosters_list = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
+
+# 2. LOCAL FILE READ: Open your local public directory player database asset directly
+print("Loading local public/players.json database track...")
+try:
+    with open("public/players.json", "r") as f:
+        master_players = json.load(f) or {}
+except Exception as e:
+    print(f"Error loading local public/players.json: {e}")
+    master_players = {}
 
 # Validate drafts structure
-if not drafts_list or not isinstance(drafts_list, list) or len(drafts_list) == 0:
+if not drafts_list:
     print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
-main_draft_id = drafts_list[0].get("draft_id")
+# Handle cases where Sleeper wraps drafts inside a list array container
+main_draft_id = drafts_list[0].get("draft_id") if isinstance(drafts_list, list) else drafts_list.get("draft_id")
+
 if not main_draft_id:
     print("Error: Could not locate a valid draft_id.")
     exit(1)
@@ -43,7 +53,7 @@ if not main_draft_id:
 print(f"Located main draft board ID: {main_draft_id}")
 picks_data = fetch_json(f"https://api.sleeper.app/v1/draft/{main_draft_id}/picks") or []
 
-# 2. Build map of which player belongs to which roster currently
+# 3. Build map of which player belongs to which roster currently
 player_to_roster_map = {}
 for roster in rosters_list:
     r_id = roster.get("roster_id")
@@ -51,14 +61,14 @@ for roster in rosters_list:
     for p_id in p_ids:
         player_to_roster_map[str(p_id)] = r_id
 
-# 3. Cache draft round positions by Player ID
+# 4. Cache draft round positions by Player ID
 draft_lookup = {}
 for pick in picks_data:
     p_id = pick.get("player_id")
     if p_id:
         draft_lookup[str(p_id)] = pick.get("round")
 
-# 4. Generate the complete master database matching your original structure
+# 5. Generate the complete master database matching your original structure
 draft_history_map = {}
 
 # Process ALL players currently on team rosters
@@ -70,9 +80,17 @@ for roster in rosters_list:
         p_id_str = str(p_id)
         player_profile = master_players.get(p_id_str) or {}
         
-        first_name = player_profile.get("first_name", "")
-        last_name = player_profile.get("last_name", "Player " + p_id_str)
-        full_name = f"{first_name} {last_name}".strip()
+        # SLeper Native API data structure keys allocation lookup overrides
+        full_name = player_profile.get("full_name") or player_profile.get("search_full_name")
+        
+        # Construct names mapping using native fallback segments if combined string doesn't map
+        if not full_name:
+            first_name = player_profile.get("first_name", "")
+            last_name = player_profile.get("last_name", "")
+            if not first_name and not last_name:
+                full_name = "Player " + p_id_str
+            else:
+                full_name = f"{first_name} {last_name}".strip()
         
         # Build the exact dictionary structure you had before
         draft_history_map[p_id_str] = {
@@ -84,7 +102,7 @@ for roster in rosters_list:
             "keeper_count": 0
         }
 
-# 5. Export to your static JSON database file
+# 6. Export to your static JSON database file
 with open("roster-history.json", "w") as f:
     json.dump(draft_history_map, f, indent=4)
 
