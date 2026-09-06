@@ -1,0 +1,30 @@
+name: Annual Draft Data Importer
+
+on:
+  workflow_dispatch: # This turns on a manual "Play" button in your browser tab
+
+jobs:
+  import-draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Run Import Script
+      run: python import_draft.py
+
+    - name: Commit and Save Roster History
+      run: |
+        git config --global user.name "GitHub Draft Bot"
+        git config --global user.email "actions@github.com"
+        git add roster-history.json
+        git commit -m "Annual draft results imported to roster-history.json" --allow-empty
+        git push origin HEAD:${{ github.ref }}
