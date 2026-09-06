@@ -37,7 +37,7 @@
         "nfl_team": "WAS",
         "roster_id": 1,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "7569": {
         "name": "Nico Collins",
@@ -93,7 +93,7 @@
         "nfl_team": "DET",
         "roster_id": 1,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "9480": {
         "name": "Brenton Strange",
@@ -157,7 +157,7 @@
         "nfl_team": "NYG",
         "roster_id": 2,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "13281": {
         "name": "Jordyn Tyson",
@@ -197,7 +197,7 @@
         "nfl_team": "IND",
         "roster_id": 2,
         "draft_round": 2,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "8148": {
         "name": "Jameson Williams",
@@ -253,7 +253,7 @@
         "nfl_team": "IND",
         "roster_id": 3,
         "draft_round": 6,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "12527": {
         "name": "Ashton Jeanty",
@@ -341,7 +341,7 @@
         "nfl_team": "CIN",
         "roster_id": 3,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "9504": {
         "name": "Kayshon Boutte",
@@ -389,7 +389,7 @@
         "nfl_team": "DET",
         "roster_id": 4,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "13287": {
         "name": "Jeremiyah Love",
@@ -461,7 +461,7 @@
         "nfl_team": "NO",
         "roster_id": 4,
         "draft_round": 6,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "11564": {
         "name": "Drake Maye",
@@ -541,7 +541,7 @@
         "nfl_team": "BUF",
         "roster_id": 5,
         "draft_round": 2,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "8142": {
         "name": "Alec Pierce",
@@ -597,7 +597,7 @@
         "nfl_team": "DEN",
         "roster_id": 6,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "11583": {
         "name": "Jonathon Brooks",
@@ -709,7 +709,7 @@
         "nfl_team": "DEN",
         "roster_id": 7,
         "draft_round": 4,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "12526": {
         "name": "Tetairoa McMillan",
@@ -773,7 +773,7 @@
         "nfl_team": "DAL",
         "roster_id": 7,
         "draft_round": 9,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "8110": {
         "name": "Jake Ferguson",
@@ -837,7 +837,7 @@
         "nfl_team": "TB",
         "roster_id": 8,
         "draft_round": 6,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "12530": {
         "name": "Travis Hunter",
@@ -917,7 +917,7 @@
         "nfl_team": "LAR",
         "roster_id": 8,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "10213": {
         "name": "Tre Tucker",
@@ -997,7 +997,7 @@
         "nfl_team": "DET",
         "roster_id": 9,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "7567": {
         "name": "Kenny Gainwell",
@@ -1061,7 +1061,7 @@
         "nfl_team": "JAX",
         "roster_id": 10,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "13311": {
         "name": "Chris Bell",
@@ -1133,7 +1133,7 @@
         "nfl_team": "SEA",
         "roster_id": 10,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "9508": {
         "name": "Tyjae Spears",
@@ -1157,7 +1157,7 @@
         "nfl_team": "CHI",
         "roster_id": 11,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "12545": {
         "name": "Tyler Shough",
@@ -1181,7 +1181,7 @@
         "nfl_team": "SF",
         "roster_id": 11,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "4199": {
         "name": "Aaron Jones",
@@ -1285,7 +1285,7 @@
         "nfl_team": "LAC",
         "roster_id": 12,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "12517": {
         "name": "Colston Loveland",
@@ -1293,7 +1293,7 @@
         "nfl_team": "CHI",
         "roster_id": 12,
         "draft_round": 14,
-        "keeper_count": 0
+        "keeper_count": 1
     },
     "13296": {
         "name": "Caleb Douglas",
