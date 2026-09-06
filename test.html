@@ -344,24 +344,38 @@
     
                 document.getElementById("loadingStatus").textContent = "Loading static keeper records...";
     
-                const historyUrl = "roster-history.json?t=" + new Date().getTime(); // Uses cache busters
-                const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
-                const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
+                const usersUrl = 'https://sleeper.app' + LEAGUE_ID + '/users';
+                const rostersUrl = 'https://sleeper.app' + LEAGUE_ID + '/rosters';
                 const masterPlayersUrl = 'public/players.json'; 
     
-                const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
-                    fetch(historyUrl),
+                const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
                     fetch(usersUrl),
                     fetch(rostersUrl),
                     fetch(masterPlayersUrl)
                 ]);
     
-                draftHistoryMap = await historyRes.json();
                 const users = await usersRes.json();
                 const rosters = await rostersRes.json();
                 const masterPlayers = await masterPlayersRes.json();
+
+                // SAFETY NET FETCH FOR HISTORICAL DRAFT RESULTS
+                draftHistoryMap = {};
+                try {
+                    const historyUrl = "roster-history.json?t=" + new Date().getTime();
+                    const historyRes = await fetch(historyUrl);
+                    if (historyRes.ok) {
+                        const contentText = await historyRes.text();
+                        if (!contentText.trim().startsWith("<!DOCTYPE")) {
+                            draftHistoryMap = JSON.parse(contentText);
+                        } else {
+                            console.warn("roster-history.json returned an HTML document. Run import_draft.py to generate it.");
+                        }
+                    }
+                } catch (historyErr) {
+                    console.warn("Could not read roster-history.json baseline file.", historyErr);
+                }
     
-                // AUTOMATED ROOKIE DETECTION: Parse directly from your local master database player cache
+                // AUTOMATED ROOKIE DETECTION
                 rookieIdsSet.clear();
                 Object.keys(masterPlayers).forEach(pId => {
                     const p = masterPlayers[pId];
@@ -398,13 +412,19 @@
                         roster.players.forEach(pId => {
                             const playerData = masterPlayers[pId];
                             if (playerData) {
-                                const liveCount = roster.keepers && roster.keepers.includes(pId) ? 1 : 0;
-                                const calculation = calculateKeeperCost(playerData, liveCount, pId);
+                                // FIXED PASSTHROUGH LOGIC: 
+                                // Explicitly read the exact saved keeper_count from your JSON file first
+                                const savedRecord = draftHistoryMap[pId.toString()];
+                                const resolvedKeeperCount = (savedRecord && savedRecord.keeper_count !== undefined) 
+                                    ? savedRecord.keeper_count 
+                                    : 0;
+
+                                const calculation = calculateKeeperCost(playerData, resolvedKeeperCount, pId);
     
                                 globalProcessedPlayers.push({
                                     roster_id: roster.roster_id,
                                     ownerName: ownerName,
-                                    keeper_count: calculation.finalKeeperCount,
+                                    keeper_count: calculation.finalKeeperCount, // Pushes the true '1' out to rendering elements
                                     ...calculation
                                 });
                             }
@@ -420,7 +440,6 @@
                 document.getElementById("loadingStatus").textContent = "Initialization Error. Check console logs.";
             }
         }
-    
         // 3. UI Table Generation Engine
         function renderTable() {
             const selectedTeam = document.getElementById("teamFilter").value;
