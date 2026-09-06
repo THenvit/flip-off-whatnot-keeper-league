@@ -1,0 +1,44 @@
+name: Live Scoreboard Projection Tracker
+
+on:
+  schedule:
+    # 1. Tuesday through Saturday: Runs once a morning at 10:00 AM UTC
+    - cron: '0 10 * * 2-6'
+    
+    # 2. Thursdays: Runs every 15 minutes during Primetime Game Window (7 PM - 11 PM EST / 00:00 - 04:00 UTC Friday)
+    - cron: '*/10 0-4 * * 5'
+    
+    # 3. Sundays: Runs every 15 minutes all day long (12 PM - 11 PM EST / 17:00 - 04:00 UTC Monday)
+    - cron: '*/10 17-23 * * 0'
+    - cron: '*/15 0-4 * * 1'
+    
+    # 4. Mondays: Runs every 15 minutes during Primetime Game Window (7 PM - 11 PM EST / 00:00 - 04:00 UTC Tuesday)
+    - cron: '*/10 0-4 * * 2'
+    
+  workflow_dispatch: # Allows manual activation anytime via the GitHub dashboard UI
+
+jobs:
+  track-scores:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Run Fetcher Engine
+      run: python fetch_projections.py
+
+    - name: Publish Live Projections JSON Change Matrix
+      run: |
+        git config --global user.name "GitHub Scoreboard Bot"
+        git config --global user.email "actions@github.com"
+        git add live_projections.json
+        git commit -m "Live game projections feed synchronization refresh" --allow-empty
+        git push origin HEAD:${{ github.ref }}
