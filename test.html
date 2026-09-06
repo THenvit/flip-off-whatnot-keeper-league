@@ -473,7 +473,7 @@ async function loadLeague() {
             rosterToNameMap[r.roster_id] = fullDisplayMap[r.owner_id] || ("Team " + r.roster_id);
         });
 
-              // --- NEW LIVE SCOREBOARD RENDER BLOCK ---
+        // --- NEW LIVE SCOREBOARD RENDER BLOCK ---
         const scoreboardContainer = document.getElementById("scoreboardContainer");
         scoreboardContainer.innerHTML = "";
 
@@ -533,31 +533,64 @@ async function loadLeague() {
                 const name1 = rosterToNameMap[team1.rosterId] || `Team ${team1.rosterId}`;
                 const name2 = rosterToNameMap[team2.rosterId] || `Team ${team2.rosterId}`;
 
-                const leaderClass1 = team1.points > team2.points ? "score-leader" : "";
-                const leaderClass2 = team2.points > team1.points ? "score-leader" : "";
+                // A. Check if the entire matchup is officially completed
+                const isMatchupFinished = (team1.remPlayers === 0 && team2.remPlayers === 0);
+
+                // B. Establish styling parameters for Live Leader vs Final Winner
+                let leaderClass1 = "";
+                let leaderClass2 = "";
+                let projClass1 = "";
+                let projClass2 = "";
+                let vsBadgeHtml = '<div class="vs-badge">VS</div>';
+                let matchBoxBackground = "#f8fafc";
+
+                if (isMatchupFinished) {
+                    // Matchup is Official: Highlight the actual score winner
+                    vsBadgeHtml = '<div class="vs-badge" style="background: #0f172a; color: #fff;">🏆 FINAL</div>';
+                    if (team1.points > team2.points) {
+                        leaderClass1 = "score-leader";
+                        matchBoxBackground = "linear-gradient(to right, #f0fdf4, #f8fafc)"; // Subtle green tint on left winner
+                    } else if (team2.points > team1.points) {
+                        leaderClass2 = "score-leader";
+                        matchBoxBackground = "linear-gradient(to left, #f0fdf4, #f8fafc)"; // Subtle green tint on right winner
+                    }
+                } else {
+                    // Matchup is Live: Highlight the team leading the score, and bold the higher projection
+                    leaderClass1 = team1.points > team2.points ? "score-leader" : "";
+                    leaderClass2 = team2.points > team1.points ? "score-leader" : "";
+                    
+                    // Highlighting the higher projection
+                    if (team1.projected > team2.projected) {
+                        projClass1 = "font-weight: 700; color: #2563eb; background: #eff6ff; padding: 1px 4px; border-radius: 4px;";
+                    } else if (team2.projected > team1.projected) {
+                        projClass2 = "font-weight: 700; color: #2563eb; background: #eff6ff; padding: 1px 4px; border-radius: 4px;";
+                    }
+                }
 
                 const matchBox = document.createElement("div");
                 matchBox.className = "matchup-box";
+                matchBox.style.background = matchBoxBackground;
+                
                 matchBox.innerHTML = `
                     <div class="scoreboard-row">
                         <div class="team-meta-block">
-                            <span class="score-team-name">${name1}</span>
-                            <span class="team-rem-count">🏃 ${team1.remPlayers} Left to Play</span>
+                            <span class="score-team-name" style="${leaderClass1 ? 'font-weight: 700;' : ''}">${name1}</span>
+                            <span class="team-rem-count">${team1.remPlayers > 0 ? `🏃 ${team1.remPlayers} Left` : '✅ Done'}</span>
                         </div>
                         <div class="score-block-vertical">
                             <span class="score-value ${leaderClass1}">${team1.points.toFixed(2)}</span>
-                            <span class="score-proj">Proj: ${team1.projected.toFixed(1)}</span>
+                            <span class="score-proj" style="${projClass1}">Proj: ${team1.projected.toFixed(1)}</span>
                         </div>
                     </div>
-                    <div class="vs-badge">VS</div>
+                    ${vsBadgeHtml}
                     <div class="scoreboard-row">
                         <div class="team-meta-block">
-                            <span class="score-team-name">${name2}</span>
-                            <span class="score-team-count">🏃 ${team2.remPlayers} Left to Play</span>
+                            <span class="score-team-name" style="${leaderClass2 ? 'font-weight: 700;' : ''}">${name2}</span>
+                            <span class="team-rem-count">${team2.remPlayers > 0 ? `🏃 ${team2.remPlayers} Left` : '✅ Done'}</span>
                         </div>
                         <div class="score-block-vertical">
                             <span class="score-value ${leaderClass2}">${team2.points.toFixed(2)}</span>
-                            <span class="score-proj">Proj: ${team2.projected.toFixed(1)}</span>
+                            <span class="score-proj" style="${projClass2}">Proj: ${team2.projected.toFixed(1)}</span>
                         </div>
                     </div>
                 `;
@@ -570,6 +603,7 @@ async function loadLeague() {
         // --- END OF LIVE SCOREBOARD RENDER BLOCK ---
 
         // 5. Sort standings by total points scored
+
         rosters.sort((a,b) => {
             const scoreA = (a.settings?.fpts || 0) + ((a.settings?.fpts_decimal || 0) / 100);
             const scoreB = (b.settings?.fpts || 0) + ((b.settings?.fpts_decimal || 0) / 100);
