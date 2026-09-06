@@ -25,11 +25,11 @@ def fetch_json(url):
 
 print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 
-# Fetch all required data feeds concurrently
+# Fetch all required live data feeds concurrently
 drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
 rosters_list = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
 
-# 2. LOCAL FILE READ: Open your local public directory player database asset directly
+# 2. LOCAL FILE READ: Open your local master player data and your EXISTING history log
 print("Loading local public/players.json database track...")
 try:
     with open("public/players.json", "r") as f:
@@ -38,38 +38,34 @@ except Exception as e:
     print(f"Error loading local public/players.json: {e}")
     master_players = {}
 
+print("Loading existing roster-history.json database layer...")
+try:
+    with open("roster-history_SAVED.json", "r") as f:
+        existing_history = json.load(f) or {}
+except Exception as e:
+    print(f"Warning: No existing roster-history.json found or file empty. Starting clean matrix map.")
+    existing_history = {}
+
 # Validate drafts structure
 if not drafts_list:
     print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
-# Handle cases where Sleeper wraps drafts inside a list array container
-main_draft_id = drafts_list[0].get("draft_id") if isinstance(drafts_list, list) else drafts_list.get("draft_id")
+main_draft_id = drafts_list.get("draft_id") if isinstance(drafts_list, list) else drafts_list.get("draft_id")
 
 if not main_draft_id:
     print("Error: Could not locate a valid draft_id.")
     exit(1)
 
 print(f"Located main draft board ID: {main_draft_id}")
-picks_data = fetch_json(f"https://sleeper.app/v1/draft/{main_draft_id}/picks") or []
+picks_data = fetch_json(f"https://sleeper.app/v1/draft{main_draft_id}/picks") or []
 
-# 3. Build map of which player belongs to which roster currently
-player_to_roster_map = {}
-for roster in rosters_list:
-    r_id = roster.get("roster_id")
-    p_ids = roster.get("players") or []
-    for p_id in p_ids:
-        player_to_roster_map[str(p_id)] = r_id
-
-# 4. Cache draft round positions and automated keeper status flags by Player ID
+# 3. Cache draft round positions and automated keeper status flags by Player ID
 draft_lookup = {}
 for pick in picks_data:
     p_id = pick.get("player_id")
     if p_id:
-        # Check standard Sleeper keeper markers inside the pick layout or pick metadata object
         is_keeper_pick = pick.get("is_keeper", False)
-        
-        # Check secondary deep metadata fallback if explicit flag isn't parsed
         pick_metadata = pick.get("metadata") or {}
         if pick_metadata.get("is_keeper") in [True, "true", "1"]:
             is_keeper_pick = True
@@ -79,7 +75,7 @@ for pick in picks_data:
             "is_keeper": is_keeper_pick
         }
 
-# 5. Generate the complete master database matching your original structure
+# 4. Generate the complete master database matching your original structure
 draft_history_map = {}
 
 # Process ALL players currently on team rosters
@@ -91,37 +87,41 @@ for roster in rosters_list:
         p_id_str = str(p_id)
         player_profile = master_players.get(p_id_str) or {}
         
-        # Sleeper Native API data structure keys allocation lookup overrides
+        # Sleeper Native API naming overrides
         full_name = player_profile.get("full_name") or player_profile.get("search_full_name")
-        
-        # Construct names mapping using native fallback segments if combined string doesn't map
         if not full_name:
             first_name = player_profile.get("first_name", "")
             last_name = player_profile.get("last_name", "")
-            if not first_name and not last_name:
-                full_name = "Player " + p_id_str
-            else:
-                full_name = f"{first_name} {last_name}".strip()
+            full_name = f"{first_name} {last_name}".strip() if (first_name or last_name) else f"Player {p_id_str}"
         
         # Retrieve cached draft record metrics
         pick_info = draft_lookup.get(p_id_str) or {}
         draft_round = pick_info.get("round", None)
         
-        # Determine the initial keeper count: 1 if flagged as a keeper this year, 0 if drafted normally
-        initial_keeper_count = 1 if pick_info.get("is_keeper", False) else 0
+        # --- AUTOMATED ACCUMULATOR FORMULA ---
+        # Look up what their count was LAST season inside your old JSON file
+        previous_player_record = existing_history.get(p_id_str) or {}
+        previous_keeper_count = previous_player_record.get("keeper_count", 0)
 
-        # Build the exact dictionary structure you had before
+        if pick_info.get("is_keeper", False):
+            # If they are kept again, take their previous count and add 1
+            updated_keeper_count = previous_keeper_count + 1
+        else:
+            # If they were drafted normally or picked up on waivers, their consecutive count drops to 0
+            updated_keeper_count = 0
+
+        # Build the exact dictionary structure
         draft_history_map[p_id_str] = {
             "name": full_name,
             "position": player_profile.get("position", "N/A"),
             "nfl_team": player_profile.get("team", "FA"),
             "roster_id": r_id,
-            "draft_round": draft_round, # Defaults to null if picked up on waivers
-            "keeper_count": initial_keeper_count
+            "draft_round": draft_round,
+            "keeper_count": updated_keeper_count
         }
 
-# 6. Export to your static JSON database file
+# 5. Export to your static JSON database file
 with open("roster-history.json", "w") as f:
     json.dump(draft_history_map, f, indent=4)
 
-print(f"🎉 Import successful! Restored complete metadata grid for {len(draft_history_map)} players into roster-history.json.")
+print(f"🎉 Import successful! Compiled results for {len(draft_history_map)} players inside roster-history.json.")
