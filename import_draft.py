@@ -51,11 +51,13 @@ if not drafts_list:
     print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
+# FIXED DRAFT LIST PARSING: Safely navigate python list array bracket layers
 if isinstance(drafts_list, list):
     if len(drafts_list) == 0:
         print("Error: Sleeper returned an empty drafts list.")
         exit(1)
-    main_draft_id = drafts_list.get("draft_id")
+    # Grab the first draft dictionary object out of the list before using .get()
+    main_draft_id = drafts_list[0].get("draft_id")
 else:
     main_draft_id = drafts_list.get("draft_id")
 
@@ -107,12 +109,11 @@ for roster in rosters_list:
         # Look up what their count was LAST season inside your old JSON file
         previous_player_record = existing_history.get(p_id_str) or {}
         previous_keeper_count = previous_player_record.get("keeper_count", 0)
-        previous_draft_round = previous_player_record.get("draft_round", None)
 
         # --- ADVANCED ACCUMULATOR FORMULA ---
         # A player is a consecutive keeper if:
         # 1. Sleeper explicitly marks them as a keeper this year
-        # OR 2. They were a keeper last year (count > 0) AND their draft round hasn't changed or has decreased (penalty applied)
+        # OR 2. They were a keeper last year (count > 0) AND their draft round is not None (meaning they are still rostered/drafted)
         if is_currently_keeper or (previous_keeper_count > 0 and draft_round is not None):
             updated_keeper_count = previous_keeper_count + 1
         else:
