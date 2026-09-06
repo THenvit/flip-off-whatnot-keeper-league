@@ -345,8 +345,8 @@
                 document.getElementById("loadingStatus").textContent = "Loading static keeper records...";
     
                 const historyUrl = "roster-history.json?t=" + new Date().getTime(); // Uses cache busters
-                const usersUrl = 'https://api.sleeper.app/v1/' + LEAGUE_ID + '/users';
-                const rostersUrl = 'https://api.sleeper.app/v1/' + LEAGUE_ID + '/rosters';
+                const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
+                const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
                 const masterPlayersUrl = 'public/players.json'; 
     
                 const [historyRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
