@@ -13,7 +13,7 @@
         "nfl_team": "LV",
         "roster_id": 1,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "11834": {
         "name": "Devaughn Vele",
@@ -45,7 +45,7 @@
         "nfl_team": "HOU",
         "roster_id": 1,
         "draft_round": 2,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "7594": {
         "name": "Chuba Hubbard",
@@ -141,7 +141,7 @@
         "nfl_team": "KC",
         "roster_id": 2,
         "draft_round": 10,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "12474": {
         "name": "Woody Marks",
@@ -189,7 +189,7 @@
         "nfl_team": "GB",
         "roster_id": 2,
         "draft_round": 7,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "6813": {
         "name": "Jonathan Taylor",
@@ -229,7 +229,7 @@
         "nfl_team": "ATL",
         "roster_id": 2,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "9754": {
         "name": "Quentin Johnston",
@@ -341,7 +341,7 @@
         "nfl_team": "CIN",
         "roster_id": 3,
         "draft_round": 3,
-        "keeper_count": 1
+        "keeper_count": 2
     },
     "9504": {
         "name": "Kayshon Boutte",
@@ -365,7 +365,7 @@
         "nfl_team": "TB",
         "roster_id": 4,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "11655": {
         "name": "Tyrone Tracy",
@@ -477,7 +477,7 @@
         "nfl_team": "LAC",
         "roster_id": 5,
         "draft_round": 4,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "12506": {
         "name": "Harold Fannin",
@@ -653,7 +653,7 @@
         "nfl_team": "DEN",
         "roster_id": 6,
         "draft_round": 9,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "5892": {
         "name": "David Montgomery",
@@ -749,7 +749,7 @@
         "nfl_team": "BAL",
         "roster_id": 7,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "421": {
         "name": "Matthew Stafford",
@@ -813,7 +813,7 @@
         "nfl_team": "NYG",
         "roster_id": 8,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "12481": {
         "name": "Cam Skattebo",
@@ -1021,7 +1021,7 @@
         "nfl_team": "ARI",
         "roster_id": 9,
         "draft_round": 2,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "8228": {
         "name": "Jaylen Warren",
@@ -1053,7 +1053,7 @@
         "nfl_team": "WAS",
         "roster_id": 10,
         "draft_round": 8,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "12490": {
         "name": "Bhayshul Tuten",
@@ -1077,7 +1077,7 @@
         "nfl_team": "PHI",
         "roster_id": 10,
         "draft_round": 1,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "7021": {
         "name": "Rico Dowdle",
@@ -1133,7 +1133,7 @@
         "nfl_team": "SEA",
         "roster_id": 10,
         "draft_round": 3,
-        "keeper_count": 1
+        "keeper_count": 2
     },
     "9508": {
         "name": "Tyjae Spears",
@@ -1149,7 +1149,7 @@
         "nfl_team": "JAX",
         "roster_id": 11,
         "draft_round": 7,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "12519": {
         "name": "Luther Burden",
@@ -1197,7 +1197,7 @@
         "nfl_team": "BAL",
         "roster_id": 11,
         "draft_round": 3,
-        "keeper_count": 0
+        "keeper_count": 2
     },
     "5012": {
         "name": "Mark Andrews",
