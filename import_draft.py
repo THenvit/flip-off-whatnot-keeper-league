@@ -41,7 +41,7 @@ if not main_draft_id:
 print(f"Successfully located main draft board ID: {main_draft_id}")
 print("Downloading completed picks list...")
 
-picks_data = fetch_json(f"https://api.sleeper.app/v1/{main_draft_id}/picks") or []
+picks_data = fetch_json(f"https://api.sleeper.app/v1/draft/{main_draft_id}/picks") or []
 
 if not picks_data or len(picks_data) == 0:
     print("Warning: The draft board appears to be empty or has not finished yet.")
