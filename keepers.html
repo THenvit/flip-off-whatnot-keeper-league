@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -276,7 +276,7 @@
         </div>
     </div>
 </div>
-    <script>
+ <script>
         let LEAGUE_ID = ""; 
         let globalProcessedPlayers = [];
         let userMap = {};
@@ -286,7 +286,7 @@
     
         // 1. Keeper Mathematical Rule Engine
         function calculateKeeperCost(playerObj, keeperCount, sleeperId) {
-            const historyRecord = draftHistoryMap[sleeperId];
+            const historyRecord = draftHistoryMap[sleeperId.toString()];
             const draftRound = (historyRecord && historyRecord.draft_round !== null) ? historyRecord.draft_round : null;
             const localKeeperCount = (historyRecord !== undefined) ? historyRecord.keeper_count : keeperCount;
     
@@ -342,40 +342,47 @@
                     throw new Error("LEAGUE_ID missing from config.json");
                 }
     
-                document.getElementById("loadingStatus").textContent = "Loading history and Sleeper data...";
+                document.getElementById("loadingStatus").textContent = "Loading static keeper records...";
     
-                const historyUrl = "roster-history.json";
-                const rookiesUrl = "rookies.json";
                 const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
                 const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
                 const masterPlayersUrl = 'public/players.json'; 
     
-                const [historyRes, rookiesRes, usersRes, rostersRes, masterPlayersRes] = await Promise.all([
-                    fetch(historyUrl),
-                    fetch(rookiesUrl),
+                const [usersRes, rostersRes, masterPlayersRes] = await Promise.all([
                     fetch(usersUrl),
                     fetch(rostersUrl),
                     fetch(masterPlayersUrl)
                 ]);
     
-                draftHistoryMap = await historyRes.json();
-                const rookiesData = await rookiesRes.json();
                 const users = await usersRes.json();
                 const rosters = await rostersRes.json();
                 const masterPlayers = await masterPlayersRes.json();
-    
-                // Populate Rookie Validation Set safely across formatting types
-                rookieIdsSet.clear();
-                if (Array.isArray(rookiesData)) {
-                    rookiesData.forEach(item => {
-                        if (item.sleeper_id) rookieIdsSet.add(item.sleeper_id.toString());
-                    });
-                } else if (rookiesData && typeof rookiesData === 'object') {
-                    Object.keys(rookiesData).forEach(key => {
-                        const idToAdd = rookiesData[key].sleeper_id || key;
-                        if (idToAdd) rookieIdsSet.add(idToAdd.toString());
-                    });
+
+                // SAFETY NET FETCH FOR HISTORICAL DRAFT RESULTS
+                draftHistoryMap = {};
+                try {
+                    const historyUrl = "roster-history.json?t=" + new Date().getTime();
+                    const historyRes = await fetch(historyUrl);
+                    if (historyRes.ok) {
+                        const contentText = await historyRes.text();
+                        if (!contentText.trim().startsWith("<!DOCTYPE")) {
+                            draftHistoryMap = JSON.parse(contentText);
+                        } else {
+                            console.warn("roster-history.json returned an HTML document. Run import_draft.py to generate it.");
+                        }
+                    }
+                } catch (historyErr) {
+                    console.warn("Could not read roster-history.json baseline file.", historyErr);
                 }
+    
+                // AUTOMATED ROOKIE DETECTION
+                rookieIdsSet.clear();
+                Object.keys(masterPlayers).forEach(pId => {
+                    const p = masterPlayers[pId];
+                    if (p && p.years_exp === 0) {
+                        rookieIdsSet.add(pId.toString());
+                    }
+                });
     
                 // Establish full parenthetical display name strings
                 users.forEach(user => {
@@ -405,13 +412,19 @@
                         roster.players.forEach(pId => {
                             const playerData = masterPlayers[pId];
                             if (playerData) {
-                                const liveCount = roster.keepers && roster.keepers.includes(pId) ? 1 : 0;
-                                const calculation = calculateKeeperCost(playerData, liveCount, pId);
+                                // FIXED PASSTHROUGH LOGIC: 
+                                // Explicitly read the exact saved keeper_count from your JSON file first
+                                const savedRecord = draftHistoryMap[pId.toString()];
+                                const resolvedKeeperCount = (savedRecord && savedRecord.keeper_count !== undefined) 
+                                    ? savedRecord.keeper_count 
+                                    : 0;
+
+                                const calculation = calculateKeeperCost(playerData, resolvedKeeperCount, pId);
     
                                 globalProcessedPlayers.push({
                                     roster_id: roster.roster_id,
                                     ownerName: ownerName,
-                                    keeper_count: calculation.finalKeeperCount,
+                                    keeper_count: calculation.finalKeeperCount, // Pushes the true '1' out to rendering elements
                                     ...calculation
                                 });
                             }
@@ -427,7 +440,6 @@
                 document.getElementById("loadingStatus").textContent = "Initialization Error. Check console logs.";
             }
         }
-    
         // 3. UI Table Generation Engine
         function renderTable() {
             const selectedTeam = document.getElementById("teamFilter").value;
@@ -439,32 +451,31 @@
             });
     
             filtered.forEach(p => {
-                const row = document.createElement("tr");
+                const tr = document.createElement("tr");
                 
-                const badgeClass = p.eligible ? "badge-eligible" : "badge-ineligible";
-                const badgeText = p.eligible ? "Eligible" : "Ineligible";
-                const costDisplayClass = p.eligible ? "" : "text-danger";
-    
+                const statusBadgeClass = p.eligible ? "badge-eligible" : "badge-ineligible";
+                const statusText = p.eligible ? "Eligible" : "Max Kept";
                 const rookieBadgeClass = p.isRookie ? "badge-rookie-yes" : "badge-rookie-no";
-                const rookieBadgeText = p.isRookie ? "Yes" : "No";
-    
-                row.innerHTML = `
+                const rookieText = p.isRookie ? "YES" : "NO";
+                
+                tr.innerHTML = `
                     <td>${p.ownerName}</td>
-                    <td><strong>${p.name}</strong></td>
-                    <td>${p.position}</td>
-                    <td>${p.nfl_team}</td>
-                    <td>${p.displayRound}</td>
-                    <td>${p.keeper_count}</td>
-                    <td class="${costDisplayClass}"><strong>${p.nextCost}</strong></td>
-                    <td><span class="badge ${rookieBadgeClass}">${rookieBadgeText}</span></td>
-                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td style="font-weight: 600; color: var(--primary);">${p.name}</td>
+                    <td style="text-align: center; font-weight: bold; color: var(--text-muted);">${p.position}</td>
+                    <td style="text-align: center;">${p.nfl_team}</td>
+                    <td style="font-variant-numeric: tabular-nums; font-weight: 500;">${p.displayRound}</td>
+                    <td style="text-align: center; font-weight: 600;">${p.keeper_count}</td>
+                    <td style="font-weight: 700; color: var(--accent);">${p.nextCost}</td>
+                    <td><span class="badge ${rookieBadgeClass}">${rookieText}</span></td>
+                    <td><span class="badge ${statusBadgeClass}">${statusText}</span></td>
                 `;
-                tbody.appendChild(row);
+                tbody.appendChild(tr);
             });
         }
     
         window.addEventListener('DOMContentLoaded', loadDashboardData);
     </script>
+
 
 </body>
 </html>
