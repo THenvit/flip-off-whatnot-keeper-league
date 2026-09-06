@@ -1,674 +1,1370 @@
 {
-    "9509": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "7564": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "9221": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "6794": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "9226": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "9493": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "5859": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "4866": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "4034": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "7547": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "6786": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "3198": {
-        "draft_round": 1,
-        "keeper_count": 0
-    },
-    "8112": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "8138": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "8130": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "8151": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "8155": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "12527": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "4984": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "8137": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "8150": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "7569": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "13287": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "6813": {
-        "draft_round": 2,
-        "keeper_count": 0
-    },
-    "10229": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "11584": {
-        "draft_round": 3,
+    "11560": {
+        "name": "Player 11560",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 7,
         "keeper_count": 0
     },
     "11604": {
+        "name": "Player 11604",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
         "draft_round": 3,
         "keeper_count": 0
     },
-    "6801": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "12507": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "11632": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "9224": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "9488": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "4881": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "7543": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "13286": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "12526": {
-        "draft_round": 3,
-        "keeper_count": 0
-    },
-    "12489": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "11635": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "8228": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "7525": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "7526": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "6790": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "12481": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "9997": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "2133": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "8146": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "2216": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "4983": {
-        "draft_round": 4,
-        "keeper_count": 0
-    },
-    "8148": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "10859": {
-        "draft_round": 5,
+    "11834": {
+        "name": "Player 11834",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": null,
         "keeper_count": 0
     },
     "12512": {
+        "name": "Player 12512",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
         "draft_round": 5,
         "keeper_count": 0
     },
-    "5892": {
-        "draft_round": 5,
+    "12533": {
+        "name": "Player 12533",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 14,
         "keeper_count": 0
     },
-    "7611": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "6806": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "5927": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "7021": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "7553": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "7567": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "12529": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "8167": {
-        "draft_round": 5,
-        "keeper_count": 0
-    },
-    "11620": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "11564": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "5967": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "13279": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "9487": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "12518": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "12514": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "6770": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "11628": {
-        "draft_round": 6,
+    "7569": {
+        "name": "Player 7569",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 2,
         "keeper_count": 0
     },
     "7594": {
+        "name": "Player 7594",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
         "draft_round": 6,
-        "keeper_count": 0
-    },
-    "8144": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "9484": {
-        "draft_round": 6,
-        "keeper_count": 0
-    },
-    "5850": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "6904": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "11560": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "4217": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "11586": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "8408": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "4037": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "10222": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "11631": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "10232": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "8142": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "421": {
-        "draft_round": 7,
-        "keeper_count": 0
-    },
-    "1466": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "12506": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "2449": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "8131": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "11566": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "13417": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "5022": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "11581": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "11583": {
-        "draft_round": 8,
         "keeper_count": 0
     },
     "8132": {
+        "name": "Player 8132",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
         "draft_round": 8,
         "keeper_count": 0
     },
-    "12534": {
-        "draft_round": 8,
+    "8134": {
+        "name": "Player 8134",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 11,
         "keeper_count": 0
     },
-    "5846": {
-        "draft_round": 8,
-        "keeper_count": 0
-    },
-    "9754": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "13294": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "9500": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "5045": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "13298": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "3294": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "6819": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "10236": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "6797": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "8126": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "9756": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "7588": {
-        "draft_round": 9,
-        "keeper_count": 0
-    },
-    "8110": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "7523": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "7002": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "4199": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "8136": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "4046": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "5872": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "11646": {
-        "draft_round": 10,
-        "keeper_count": 0
-    },
-    "10219": {
-        "draft_round": 10,
+    "8146": {
+        "name": "Player 8146",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 4,
         "keeper_count": 0
     },
     "8183": {
+        "name": "Player 8183",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
         "draft_round": 10,
         "keeper_count": 0
     },
-    "3214": {
-        "draft_round": 10,
+    "9221": {
+        "name": "Player 9221",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "9480": {
+        "name": "Player 9480",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "9500": {
+        "name": "Player 9500",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "9753": {
+        "name": "Player 9753",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 1,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "10229": {
+        "name": "Player 10229",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "10235": {
+        "name": "Player 10235",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": null,
         "keeper_count": 0
     },
     "11624": {
+        "name": "Player 11624",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
         "draft_round": 10,
         "keeper_count": 0
     },
     "12474": {
+        "name": "Player 12474",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
         "draft_round": 11,
-        "keeper_count": 0
-    },
-    "5947": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "8134": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "13345": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "13413": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "5849": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "12501": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "13346": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "5012": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "3163": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "13305": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "8121": {
-        "draft_round": 11,
-        "keeper_count": 0
-    },
-    "13269": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "13293": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "4892": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "5844": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "9508": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "13414": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "12493": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "13337": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "6804": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "9753": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "11655": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "8676": {
-        "draft_round": 12,
-        "keeper_count": 0
-    },
-    "13281": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "13320": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "9480": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "13330": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "13296": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "4035": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "8210": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "8180": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "12545": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "11610": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "8154": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "5001": {
-        "draft_round": 13,
-        "keeper_count": 0
-    },
-    "13276": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "9502": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "10213": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "12519": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "12490": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "9504": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "12530": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "12517": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "11563": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "12533": {
-        "draft_round": 14,
-        "keeper_count": 0
-    },
-    "12535": {
-        "draft_round": 14,
         "keeper_count": 0
     },
     "12508": {
+        "name": "Player 12508",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
         "draft_round": 14,
+        "keeper_count": 0
+    },
+    "13281": {
+        "name": "Player 13281",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "4983": {
+        "name": "Player 4983",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "5846": {
+        "name": "Player 5846",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "5850": {
+        "name": "Player 5850",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "6813": {
+        "name": "Player 6813",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "8148": {
+        "name": "Player 8148",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "8676": {
+        "name": "Player 8676",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "9484": {
+        "name": "Player 9484",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "9509": {
+        "name": "Player 9509",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "9754": {
+        "name": "Player 9754",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 2,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "12501": {
+        "name": "Player 12501",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "12518": {
+        "name": "Player 12518",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "12527": {
+        "name": "Player 12527",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "13414": {
+        "name": "Player 13414",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "13417": {
+        "name": "Player 13417",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "4037": {
+        "name": "Player 4037",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "4046": {
+        "name": "Player 4046",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "5859": {
+        "name": "Player 5859",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "5927": {
+        "name": "Player 5927",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "6790": {
+        "name": "Player 6790",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "6819": {
+        "name": "Player 6819",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "8210": {
+        "name": "Player 8210",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "9224": {
+        "name": "Player 9224",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "9504": {
+        "name": "Player 9504",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 3,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "10859": {
+        "name": "Player 10859",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "11584": {
+        "name": "Player 11584",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "11655": {
+        "name": "Player 11655",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "12534": {
+        "name": "Player 12534",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "12535": {
+        "name": "Player 12535",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "13287": {
+        "name": "Player 13287",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "13294": {
+        "name": "Player 13294",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "13320": {
+        "name": "Player 13320",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "2216": {
+        "name": "Player 2216",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "3214": {
+        "name": "Player 3214",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "5947": {
+        "name": "Player 5947",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "6904": {
+        "name": "Player 6904",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "7564": {
+        "name": "Player 7564",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "8144": {
+        "name": "Player 8144",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 4,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "11564": {
+        "name": "Player 11564",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "11635": {
+        "name": "Player 11635",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "12506": {
+        "name": "Player 12506",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "12529": {
+        "name": "Player 12529",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "13286": {
+        "name": "Player 13286",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "13293": {
+        "name": "Player 13293",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "13305": {
+        "name": "Player 13305",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "6786": {
+        "name": "Player 6786",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "7523": {
+        "name": "Player 7523",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "8138": {
+        "name": "Player 8138",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "8142": {
+        "name": "Player 8142",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "8154": {
+        "name": "Player 8154",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "9486": {
+        "name": "Player 9486",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": null,
+        "keeper_count": 0
+    },
+    "9502": {
+        "name": "Player 9502",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "9756": {
+        "name": "Player 9756",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 5,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "10219": {
+        "name": "Player 10219",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "11563": {
+        "name": "Player 11563",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "11583": {
+        "name": "Player 11583",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "11628": {
+        "name": "Player 11628",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "13330": {
+        "name": "Player 13330",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "13345": {
+        "name": "Player 13345",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "2133": {
+        "name": "Player 2133",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "4217": {
+        "name": "Player 4217",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "5045": {
+        "name": "Player 5045",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "5892": {
+        "name": "Player 5892",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "6794": {
+        "name": "Player 6794",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "6801": {
+        "name": "Player 6801",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "6804": {
+        "name": "Player 6804",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "8150": {
+        "name": "Player 8150",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 6,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "11620": {
+        "name": "Player 11620",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "12489": {
+        "name": "Player 12489",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "12526": {
+        "name": "Player 12526",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "13269": {
+        "name": "Player 13269",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "13276": {
+        "name": "Player 13276",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "1466": {
+        "name": "Player 1466",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "3198": {
+        "name": "Player 3198",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "421": {
+        "name": "Player 421",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "5001": {
+        "name": "Player 5001",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "7588": {
+        "name": "Player 7588",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "8110": {
+        "name": "Player 8110",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "8112": {
+        "name": "Player 8112",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "8121": {
+        "name": "Player 8121",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "8167": {
+        "name": "Player 8167",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 7,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "11632": {
+        "name": "Player 11632",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "12481": {
+        "name": "Player 12481",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "12493": {
+        "name": "Player 12493",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "12514": {
+        "name": "Player 12514",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "12530": {
+        "name": "Player 12530",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "3294": {
+        "name": "Player 3294",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "4035": {
+        "name": "Player 4035",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "4984": {
+        "name": "Player 4984",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "5022": {
+        "name": "Player 5022",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "5849": {
+        "name": "Player 5849",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "5872": {
+        "name": "Player 5872",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "6806": {
+        "name": "Player 6806",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "8408": {
+        "name": "Player 8408",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "9493": {
+        "name": "Player 9493",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 8,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "10213": {
+        "name": "Player 10213",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "10232": {
+        "name": "Player 10232",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "11610": {
+        "name": "Player 11610",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "2449": {
+        "name": "Player 2449",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "3163": {
+        "name": "Player 3163",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "4892": {
+        "name": "Player 4892",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "5967": {
+        "name": "Player 5967",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "7002": {
+        "name": "Player 7002",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "7543": {
+        "name": "Player 7543",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "7547": {
+        "name": "Player 7547",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "7567": {
+        "name": "Player 7567",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "8126": {
+        "name": "Player 8126",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "8130": {
+        "name": "Player 8130",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "8228": {
+        "name": "Player 8228",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 9,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "10222": {
+        "name": "Player 10222",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "10236": {
+        "name": "Player 10236",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "11566": {
+        "name": "Player 11566",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "12490": {
+        "name": "Player 12490",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "13311": {
+        "name": "Player 13311",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": null,
+        "keeper_count": 0
+    },
+    "4866": {
+        "name": "Player 4866",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "7021": {
+        "name": "Player 7021",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "7526": {
+        "name": "Player 7526",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "8136": {
+        "name": "Player 8136",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "8155": {
+        "name": "Player 8155",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "8180": {
+        "name": "Player 8180",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "9487": {
+        "name": "Player 9487",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "9488": {
+        "name": "Player 9488",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "9508": {
+        "name": "Player 9508",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 10,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "11631": {
+        "name": "Player 11631",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "12519": {
+        "name": "Player 12519",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "12545": {
+        "name": "Player 12545",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "13279": {
+        "name": "Player 13279",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "4034": {
+        "name": "Player 4034",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "4199": {
+        "name": "Player 4199",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "4881": {
+        "name": "Player 4881",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "5012": {
+        "name": "Player 5012",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "5844": {
+        "name": "Player 5844",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "6797": {
+        "name": "Player 6797",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "7525": {
+        "name": "Player 7525",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 4,
+        "keeper_count": 0
+    },
+    "7553": {
+        "name": "Player 7553",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "8131": {
+        "name": "Player 8131",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "8151": {
+        "name": "Player 8151",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 11,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "11581": {
+        "name": "Player 11581",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 8,
+        "keeper_count": 0
+    },
+    "11586": {
+        "name": "Player 11586",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 7,
+        "keeper_count": 0
+    },
+    "11646": {
+        "name": "Player 11646",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 10,
+        "keeper_count": 0
+    },
+    "12507": {
+        "name": "Player 12507",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 3,
+        "keeper_count": 0
+    },
+    "12517": {
+        "name": "Player 12517",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 14,
+        "keeper_count": 0
+    },
+    "13296": {
+        "name": "Player 13296",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 13,
+        "keeper_count": 0
+    },
+    "13298": {
+        "name": "Player 13298",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 9,
+        "keeper_count": 0
+    },
+    "13337": {
+        "name": "Player 13337",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 12,
+        "keeper_count": 0
+    },
+    "13413": {
+        "name": "Player 13413",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 11,
+        "keeper_count": 0
+    },
+    "6770": {
+        "name": "Player 6770",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 6,
+        "keeper_count": 0
+    },
+    "7611": {
+        "name": "Player 7611",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 5,
+        "keeper_count": 0
+    },
+    "8137": {
+        "name": "Player 8137",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 2,
+        "keeper_count": 0
+    },
+    "9226": {
+        "name": "Player 9226",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 1,
+        "keeper_count": 0
+    },
+    "9997": {
+        "name": "Player 9997",
+        "position": "N/A",
+        "nfl_team": "FA",
+        "roster_id": 12,
+        "draft_round": 4,
         "keeper_count": 0
     }
 }
