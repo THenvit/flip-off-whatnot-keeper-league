@@ -26,7 +26,7 @@ def fetch_json(url):
 print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 
 # Fetch all required live data feeds concurrently
-drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
+drafts_list = fetch_json(f"hhttps://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
 rosters_list = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
 
 # 2. LOCAL FILE READ: Open your local master player data and your EXISTING history log
@@ -51,13 +51,11 @@ if not drafts_list:
     print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
-# FIXED DRAFT LIST PARSING: Safely extract draft_id from list arrays or single dictionaries
 if isinstance(drafts_list, list):
     if len(drafts_list) == 0:
         print("Error: Sleeper returned an empty drafts list.")
         exit(1)
-    # Target the first primary draft dictionary inside the list container array
-    main_draft_id = drafts_list[0].get("draft_id")
+    main_draft_id = drafts_list.get("draft_id")
 else:
     main_draft_id = drafts_list.get("draft_id")
 
@@ -95,7 +93,6 @@ for roster in rosters_list:
         p_id_str = str(p_id)
         player_profile = master_players.get(p_id_str) or {}
         
-        # Sleeper Native API naming overrides
         full_name = player_profile.get("full_name") or player_profile.get("search_full_name")
         if not full_name:
             first_name = player_profile.get("first_name", "")
@@ -105,18 +102,22 @@ for roster in rosters_list:
         # Retrieve cached draft record metrics
         pick_info = draft_lookup.get(p_id_str) or {}
         draft_round = pick_info.get("round", None)
+        is_currently_keeper = pick_info.get("is_keeper", False)
         
-        # --- AUTOMATED ACCUMULATOR FORMULA ---
         # Look up what their count was LAST season inside your old JSON file
         previous_player_record = existing_history.get(p_id_str) or {}
         previous_keeper_count = previous_player_record.get("keeper_count", 0)
+        previous_draft_round = previous_player_record.get("draft_round", None)
 
-        if pick_info.get("is_keeper", False):
-            # If they are kept again, take their previous count and add 1
+        # --- ADVANCED ACCUMULATOR FORMULA ---
+        # A player is a consecutive keeper if:
+        # 1. Sleeper explicitly marks them as a keeper this year
+        # OR 2. They were a keeper last year (count > 0) AND their draft round hasn't changed or has decreased (penalty applied)
+        if is_currently_keeper or (previous_keeper_count > 0 and draft_round is not None):
             updated_keeper_count = previous_keeper_count + 1
         else:
-            # If they were drafted normally or picked up on waivers, their consecutive count drops to 0
-            updated_keeper_count = 0
+            # If they were drafted completely fresh or picked up via free agency, reset to 1 if it's their first year kept
+            updated_keeper_count = 1 if is_currently_keeper else 0
 
         # Build the exact dictionary structure
         draft_history_map[p_id_str] = {
