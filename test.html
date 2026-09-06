@@ -1,191 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>League Standings & Playoff Odds - Flip Off Whatnot</title>
-    <style>
-        :root {
-            --bg-color: #f1f5f9;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --primary: #1e3a8a;
-            --accent: #3b82f6;
-            --success-color: #16a34a;
-            --warning-color: #ea580c;
-            --danger-color: #dc2626;
-        }
-    
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding-top: 60px; /* Offset spacing context for the fixed top navbar */
-        }
-    
-        /* 📱 FIXED MOBILE NAV BAR: Restructures links into a touch-swipe menu track */
-        .nav-bar {
-            background: #0f172a;
-            padding: 0 10px;
-            height: 50px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
-    
-        .nav-bar::-webkit-scrollbar {
-            display: none; /* Hides standard system scrollbar tracks */
-        }
-    
-        .nav-bar a {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            padding: 6px 12px;
-            border-radius: 6px;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-    
-        .nav-bar a:hover, .nav-bar a.active {
-            color: #ffffff;
-            background: var(--accent);
-        }
-    
-        .container {
-            max-width: 1000px;
-            margin: 15px auto;
-            padding: 0 15px;
-            box-sizing: border-box;
-        }
-    
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 20px;
-        }
-    
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-            width: 100%;
-        }
-    
-        .card h2 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #0f172a;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-    
-        .table-responsive-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            border-radius: 6px;
-        }
-    
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px; /* Locks table from text-squishing inside phone viewports */
-        }
-    
-        th {
-            background: #f8fafc;
-            color: #0f172a; /* Darkened header values */
-            padding: 14px 12px;
-            font-weight: bold; /* Bolded table headers */
-            font-size: 0.88rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 2px solid var(--border-color);
-        }
-    
-        td {
-            padding: 14px 12px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.95rem;
-        }
-    
-        tr:hover td {
-            background-color: #f8fafc;
-        }
-    
-        /* Column Sizing and Alignments */
-        .col-rank { text-align: center; width: 8%; }
-        .col-team { text-align: left; width: 34%; color: var(--primary); }
-        .col-record { text-align: center; width: 13%; font-weight: 600; }
-        .col-pf { text-align: right; width: 15%; font-variant-numeric: tabular-nums; font-weight: 500; }
-        .col-faab { text-align: center; width: 15%; font-weight: 600; color: var(--success-color); }
-        .col-odds { text-align: center; width: 15%; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flip Off Whatnot - League Dashboard</title>
 
-    
-        /* High-Contrast Standings Odds Indicators */
-        .playoff-lock { color: var(--success-color); font-weight: bold; }
-        .playoff-bubble { color: var(--warning-color); font-weight: bold; }
-        .playoff-out { color: var(--danger-color); font-weight: bold; }
-    
-        @media(min-width: 680px) {
-            .container { margin: 30px auto; padding: 0 20px; }
-            h1 { font-size: 1.8rem; }
-            .card { padding: 24px; }
+<style>
+    :root {
+        --bg-color: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --primary: #1e3a8a;
+        --accent: #3b82f6;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding-top: 60px; /* Offset for pinned nav */
+    }
+
+    /* 📱 FIXED MOBILE NAV BAR: Allows safe horizontal swipe-scrolling */
+    .nav-bar {
+        background: #0f172a;
+        padding: 0 10px;
+        height: 50px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        overflow-x: auto; /* Forces scrolling when elements overflow mobile screens */
+        white-space: nowrap; /* Prevents text elements from breaking onto secondary vertical lines */
+        -webkit-overflow-scrolling: touch; /* High-performance momentum scroll for iOS mobile devices */
+    }
+
+    /* Hides the desktop browser scrollbar across nav headers to maintain a native app feel */
+    .nav-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-bar a {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 6px;
+        display: inline-block;
+        flex-shrink: 0; /* Prevents text squishing inside small containers */
+    }
+
+    .nav-bar a:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-bar a.active {
+        color: #ffffff;
+        background: var(--accent);
+    }
+
+    /* Fluid Dashboard Main Container */
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 15px auto;
+        padding: 0 15px;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 20px;
+        word-break: break-word; /* Prevents header overlap cuts */
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .card h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #0f172a;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    /* 📱 RESPONSIVE STANDINGS TABLE: Eliminates desktop page cutoff issues */
+    .table-responsive-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 6px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 500px; /* Guarantees structured spacing for compact phone viewports */
+    }
+
+    th {
+        background: #f8fafc;
+        color: #0f172a;
+        padding: 12px 10px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    td {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    .col-team { text-align: left; width: 40%; color: var(--primary); font-size: 0.88rem; word-break: break-word; }
+    .col-record { text-align: center; width: 20%; font-weight: 600; }
+    .col-pf { text-align: right; width: 20%; font-variant-numeric: tabular-nums; }
+    .col-faab { text-align: center; width: 20%; font-weight: 600; color: #16a34a; }
+
+    /* 📱 ULTRALIGHT FLEXIBLE ROSTER DEPTH CHART GRID */
+    .roster-grid {
+        display: grid;
+        grid-template-columns: 1fr; /* Defaults to single column for standard mobile phones */
+        gap: 15px;
+        width: 100%;
+    }
+
+    /* Media query upgrade step path for tablet/desktop viewports */
+    @media(min-width: 680px) {
+        .roster-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Auto-wraps when screen room permits */
         }
-    </style>
+        .card { padding: 24px; }
+        h1 { font-size: 1.8rem; }
+    }
+
+    .team-roster-box {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .team-roster-header {
+        background: #f8fafc;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-color);
+        border-left: 4px solid var(--accent);
+    }
+
+    .team-roster-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+        word-break: break-word;
+    }
+
+    .roster-mini-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .roster-mini-table tr:nth-child(even) {
+        background-color: #fcfdfe;
+    }
+
+    .roster-mini-table td {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .bench-divider {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: center;
+        padding: 6px 12px !important;
+    }
+
+    /* Position pills styling */
+    .pos-pill {
+        display: inline-block;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        min-width: 30px;
+        box-sizing: border-box;
+    }
+    .pos-QB  { background-color: #dc2626; }
+    .pos-RB  { background-color: #2563eb; }
+    .pos-WR  { background-color: #16a34a; }
+    .pos-TE  { background-color: #ea580c; }
+    .pos-K   { background-color: #7c3aed; }
+    .pos-DEF { background-color: #4b5563; }
+</style>
+
 
 </head>
+
 <body>
- 
-<!-- Pinned Navigation Header Bar (Responsive Mobile Swipe Menu) -->
+    
+<!-- Upgraded Navigation Bar -->
 <div class="nav-bar">
-    <a href="index.html">Home Page</a>
+    <a href="index.html" class="active">Home Page</a>
     <a href="keepers.html">Keeper Tracker</a>
-    <a href="standings.html" class="active">Standings</a>
+    <a href="standings.html">Standings</a>
     <a href="power-rankings.html">Power Rankings</a>
     <a href="rules.html">League Rules</a>
     <a href="team-stat-page.html">Team Rosters</a>
     <a href="history.html">League History</a>
 </div>
- 
-<div class="container">
-    <h1>🏈 League Standings & Playoff Odds</h1>
     
+<div class="dashboard-container">
+    <h1>🏈 Flip Off Whatnot League Dashboard</h1>
+
+    <!-- Standings Card -->
+    <!-- Fixed Standings Section with Scroll Wrappers -->
     <div class="card">
-        <h2>Current Standings</h2>
-        <!-- 📱 RESPONSIVE WRAPPER: Shields table margins from mobile screen boundaries -->
+        <h2>Standings</h2>
         <div class="table-responsive-wrapper">
-            <table id="standingsTable">
+            <table id="standings">
                 <thead>
                     <tr>
-                        <th class="col-rank">Rank</th>
                         <th class="col-team">Team</th>
                         <th class="col-record">Record</th>
-                        <th class="col-pf">Points For</th>
-                        <th class="col-faab">FAAB Left</th>
-                        <th class="col-odds" style="width: 12%;">Playoff %</th>
-                        <th style="text-align: center; width: 12%;">Simulate Win</th>
+                        <th class="col-pf">PF</th>
+                        <th class="col-faab">FAAB</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -194,194 +273,428 @@
             </table>
         </div>
     </div>
+
+    <!-- Live FAAB & Transaction Ledger Card -->
+    <div class="card">
+        <h2>Recent Waivers & Transactions</h2>
+        <div class="table-responsive-wrapper">
+            <table id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; width: 25%;">Type</th>
+                        <th style="text-align: left; width: 45%;">Transaction Details</th>
+                        <th style="text-align: center; width: 15%;">FAAB</th>
+                        <th style="text-align: right; width: 15%;">Team</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading league activity...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Weekly Matchup Live Scoreboard Grid -->
+            <style>
+            .scoreboard-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 15px;
+                width: 100%;
+                margin-top: 10px;
+                box-sizing: border-box;
+            }
+            @media(min-width: 768px) {
+                .scoreboard-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); /* Wraps smoothly into a multi-column desktop layout */
+                }
+            }
+            .matchup-box {
+                background: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+                box-sizing: border-box;
+                width: 100%;
+            }
+            /* 📱 MOBILE RESPONSIVE TWEAK: Forces vertical stacks on phones, clean alignment rows on desktop */
+            .scoreboard-row {
+                display: flex;
+                flex-direction: column; /* Stacks team name on top of the score for phone viewports */
+                align-items: flex-start;
+                gap: 4px;
+                padding: 6px 0;
+            }
+            .scoreboard-row:first-child {
+                border-bottom: 1px dashed var(--border-color);
+                padding-bottom: 10px;
+            }
+            .scoreboard-row:last-child {
+                padding-top: 10px;
+            }
+            @media(min-width: 480px) {
+                .scoreboard-row {
+                    flex-direction: row; /* Returns back to a clean row format on wider devices */
+                    justify-content: space-between;
+                    align-items: center;
+                }
+            }
+            .score-team-name {
+                font-weight: 600;
+                font-size: 0.88rem;
+                color: var(--text-main);
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .score-value {
+                font-variant-numeric: tabular-nums;
+                font-weight: 700;
+                font-size: 1.05rem;
+                color: var(--primary);
+            }
+            .score-leader {
+                color: var(--success-color) !important;
+            }
+            .vs-badge {
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                font-weight: bold;
+                text-align: center;
+                background: #e2e8f0;
+                padding: 2px 6px;
+                border-radius: 10px;
+                margin: 4px auto; /* Centers spacing cleanly around vertical blocks */
+                width: fit-content;
+                display: block;
+                z-index: 5;
+                position: relative;
+            }
+        </style>
+
+    
+    <!-- Redesigned Depth-Chart Roster Card Grid -->
+    <div class="card">
+        <h2>Rosters</h2>
+        <div class="roster-grid" id="rosters">
+            <!-- Populated via JS -->
+        </div>
+    </div>
 </div>
+
+
 <script>
-     // Global runtime league variable pulled dynamically from config.json
-    let LEAGUE_ID = "";
-    
-    // Set your league's total starting FAAB budget here (Sleeper default is usually 100)
-    const TOTAL_FAAB_BUDGET = 100;
-    
-    // Master array to hold baseline stats so toggles don't cause permanent distortion
-    let baselineStandings = [];
-    
-    async function loadStandings(){
-        try {
-            // 1. Fetch dynamic config.json requirements
-            const configRes = await fetch("config.json");
-            const configData = await configRes.json();
-            LEAGUE_ID = configData.LEAGUE_ID;
-    
-            if (!LEAGUE_ID) {
-                throw new Error("LEAGUE_ID variable missing from config.json.");
-            }
-    
-            // 2. Query core Sleeper API data assets concurrently
-            const usersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/users';
-            const rostersUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID + '/rosters';
-          //  const playoffOddsUrl = 'playoff_odds.json'; // Handles pre-calculated percentage maps
-            
-            const [users, rosters] = await Promise.all([
-                fetch(usersUrl).then(r=>r.json()),
-                fetch(rostersUrl).then(r=>r.json())
-            ]);
+// Global variable loaded dynamically from config.json
+let LEAGUE_ID = "";
 
-            // 3. Isolated safety net fetch for our background playoff odds file
-            let liveOdds = {};
-            try {
-                const playoffOddsUrl = 'playoff_odds.json?t=' + new Date().getTime();
-                const oddsRes = await fetch(playoffOddsUrl);
-                if (oddsRes.ok) {
-                    liveOdds = await oddsRes.json();
-                }
-            } catch (oddsErr) {
-                console.warn("Playoff odds file not ready or empty yet. Using fallbacks.", oddsErr);
-            }
-    
-            // 4. Establish structured parenthetical title combinations
-            const fullDisplayMap = {};
-            users.forEach(user => {
-                const userName = user.display_name || user.username || "Unknown Owner";
-                if (user.metadata && user.metadata.team_name) {
-                    fullDisplayMap[user.user_id] = user.metadata.team_name + " (" + userName + ")";
-                } else {
-                    fullDisplayMap[user.user_id] = userName;
-                }
-            });
-    
-            // 5. Map settings and parse records / points / FAAB tracking
-            baselineStandings = rosters.map(roster => {
-                const pf = (roster.settings?.fpts || 0) + ((roster.settings?.fpts_decimal || 0) / 100);
-                
-                // Deduct spent FAAB from the total budget
-                const faabUsed = roster.settings?.waiver_budget_used || 0;
-                const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
+// Set your league's total starting FAAB budget 
+const TOTAL_FAAB_BUDGET = 100;
 
-                const stringRosterId = String(roster.roster_id);
-                
-                // Keep the baseline odds as a raw floating number for interactive calculations
-                let numericOdds = 50.0;
-                if (liveOdds && liveOdds[stringRosterId] !== undefined) {
-                    numericOdds = parseFloat(liveOdds[stringRosterId]);
-                }
+// Helper array to sort roster tables logically by starting positional priority
+const positionOrder = ["QB", "RB", "WR", "TE", "K", "DEF"];
 
-                return {
-                    rosterId: roster.roster_id,
-                    team: fullDisplayMap[roster.owner_id] || ("Team " + roster.roster_id),
-                    wins: roster.settings?.wins || 0,
-                    losses: roster.settings?.losses || 0,
-                    ties: roster.settings?.ties || 0,
-                    pf: pf,
-                    faab: faabRemaining,
-                    baseOdds: numericOdds,
-                    simWins: 0
-                };
-            });
+async function loadLeague() {
+    try {
+        // 1. Load the central configuration file first
+        const configRes = await fetch("config.json");
+        const configData = await configRes.json();
+        LEAGUE_ID = configData.LEAGUE_ID;
 
-            // Insert a clean disclaimer notice right above our layout table body container dynamically
-            const tableEl = document.getElementById("standingsTable");
-            if (tableEl && !document.getElementById("machineDisclaimer")) {
-                const notice = document.createElement("div");
-                notice.id = "machineDisclaimer";
-                notice.style.fontSize = "12px";
-                notice.style.color = "var(--text-muted)";
-                notice.style.background = "#f8fafc";
-                notice.style.padding = "8px 12px";
-                notice.style.borderRadius = "6px";
-                notice.style.marginBottom = "12px";
-                notice.style.border = "1px solid var(--border-color)";
-                notice.style.fontStyle = "italic";
-                notice.innerHTML = "💡 <strong>Playoff Machine Mode:</strong> Checking 'Simulate Win' shifts table rankings and adds a visual +15% boost to that team's odds. True percentages recalculate every Tuesday via backend Monte Carlo simulation.";
-                tableEl.parentNode.insertBefore(notice, tableEl);
-            }
-    
-            // Initial call to render everything into the viewport
-            recalculateAndRender();
-    
-        } catch (error) {
-            console.error("Critical failure during layout render engine flow:", error);
+        if (!LEAGUE_ID) {
+            throw new Error("LEAGUE_ID missing from config.json");
         }
-    }
-
-    function recalculateAndRender() {
-        // Deep clone the baseline dataset array structures cleanly 
-        let currentStandings = baselineStandings.map(t => ({ ...t, currentOdds: t.baseOdds }));
-
-        // 1. First Pass: Apply simulated wins and find out who is boosted
-        let activeBoostsCount = 0;
-        const checkboxes = document.querySelectorAll(".sim-toggle");
+        // 2. Fetch the current NFL league state to find out what week we are in dynamically
+        const stateRes = await fetch(" https://api.sleeper.app/v1/state/nfl");
+        const stateData = await stateRes.json();
+        // Fallback to week 1 if the season hasn't started yet or returns 0
+        const currentWeek = stateData.display_week || stateData.week || 1; 
         
-        // Save which boxes were checked before clearing the innerHTML space
-        const checkedMap = {};
-        checkboxes.forEach(box => { 
-            checkedMap[box.dataset.rosterId] = box.checked; 
-            if (box.checked) {
-                const rId = parseInt(box.dataset.rosterId);
-                const teamObj = currentStandings.find(t => t.rosterId === rId);
-                if (teamObj) {
-                    teamObj.wins += 1;
-                    teamObj.simWins = 1;
-                    teamObj.currentOdds = Math.min(100, teamObj.baseOdds + 15.0); // Boost odds
-                    activeBoostsCount++;
-                }
+        // 3. Construct exact API endpoints securely using standard concatenation
+        const baseUrl = 'https://api.sleeper.app/v1/league/' + LEAGUE_ID;
+        const usersUrl = baseUrl + '/users';
+        const rostersUrl = baseUrl + '/rosters';
+        const transactionsUrl = baseUrl + '/transactions/' + currentWeek; // Fetches this week's live moves
+        const matchupsUrl = baseUrl + '/matchups/' + currentWeek;
+        const masterPlayersUrl = 'public/players.json'; 
+
+        const [usersRes, rostersRes, transactionsRes, matchupsRes, masterPlayersRes] = await Promise.all([
+            fetch(usersUrl),
+            fetch(rostersUrl),
+            fetch(transactionsUrl),
+            fetch(matchupsUrl),
+            fetch(masterPlayersUrl)
+        ]);
+
+        const users = await usersRes.json();
+        const rosters = await rostersRes.json();
+        const rawTransactions = await transactionsRes.json();
+        const rawMatchups = await matchupsRes.json();
+        const players = await masterPlayersRes.json();
+
+        // 4. Establish owner username maps and combined display titles
+        const rawOwnerMap = {};
+        const fullDisplayMap = {};
+        const rosterToNameMap = {}; 
+
+        users.forEach(user => {
+            const userName = user.display_name || user.username || "Unknown Owner";
+            rawOwnerMap[user.user_id] = userName;
+            
+            if (user.metadata && user.metadata.team_name) {
+                fullDisplayMap[user.user_id] = user.metadata.team_name + " (" + userName + ")";
+            } else {
+                fullDisplayMap[user.user_id] = userName;
             }
         });
 
-        // 2. Second Pass: Dribble down and scale unselected teams down to offset the added boost inflation
-        if (activeBoostsCount > 0 && currentStandings.length > activeBoostsCount) {
-            const totalBoostInjected = activeBoostsCount * 15.0;
-            const unselectedCount = currentStandings.length - activeBoostsCount;
-            const reductionShare = totalBoostInjected / unselectedCount;
-
-            currentStandings.forEach(team => {
-                if (team.simWins === 0) {
-                    team.currentOdds = Math.max(0, team.baseOdds - reductionShare); // Reduce odds proportionally
-                }
-            });
-        }
-
-        // 3. Sort rankings logically by wins, then points for tiebreakers
-        currentStandings.sort((a, b) => {
-            if (b.wins !== a.wins) return b.wins - a.wins;
-            return b.pf - a.pf;
+        rosters.forEach(r => {
+            rosterToNameMap[r.roster_id] = fullDisplayMap[r.owner_id] || ("Team " + r.roster_id);
         });
 
-        // 4. Dom injection loop rendering elements into viewport
-        const tbody = document.querySelector("#standingsTable tbody");
-        tbody.innerHTML = "";
-        
-        currentStandings.forEach((entry, index) => {
-            const tr = document.createElement("tr");
-            
-            const rank = index + 1;
-            const recordStr = entry.ties > 0 
-                ? `${entry.wins}-${entry.losses}-${entry.ties}` 
-                : `${entry.wins}-${entry.losses}`;
+        // --- NEW LIVE SCOREBOARD RENDER BLOCK ---
+        const scoreboardContainer = document.getElementById("scoreboardContainer");
+        scoreboardContainer.innerHTML = "";
 
-            // Apply pill color definitions cleanly based on percentage probability thresholds
-            const oddsDisplayStr = entry.currentOdds.toFixed(1) + "%";
-            let cssClass = "playoff-bubble";
-            if (entry.currentOdds >= 80.0) cssClass = "playoff-lock";
-            else if (entry.currentOdds <= 25.0) cssClass = "playoff-out";
+        // Group team scores together by matching their matchup_id pairs
+        const matchupPairs = {};
+        (rawMatchups || []).forEach(teamMatchup => {
+            const mId = teamMatchup.matchup_id;
+            if (!mId) return;
+            if (!matchupPairs[mId]) matchupPairs[mId] = [];
+            matchupPairs[mId].push({
+                rosterId: teamMatchup.roster_id,
+                points: teamMatchup.points || 0
+            });
+        });
 
-            const wasChecked = checkedMap[entry.rosterId] ? "checked" : "";
+        // Loop through paired matchups and inject live rows into your grid layout
+        Object.keys(matchupPairs).forEach(mId => {
+            const pair = matchupPairs[mId];
+            if (pair.length < 2) return; // Skip if it's an odd-man out or bye structure
 
-            tr.innerHTML = `
-                <td class="col-rank">${rank}</td>
-                <td class="col-team">${entry.team}</td>
-                <td class="col-record" style="${entry.simWins > 0 ? 'color: var(--success-color); font-weight: bold;' : ''}">${recordStr}</td>
-                <td class="col-pf">${entry.pf.toFixed(2)}</td>
-                <td class="col-faab">$${entry.faab}</td>
-                <td class="col-odds" style="text-align: center;"><span class="${cssClass}">${oddsDisplayStr}</span></td>
-                <td style="text-align: center;">
-                    <input type="checkbox" class="sim-toggle" data-roster-id="${entry.rosterId}" ${wasChecked} onchange="recalculateAndRender()" style="width:18px; height:18px; cursor:pointer;">
-                </td>
+            const team1 = pair[0];
+            const team2 = pair[1];
+            const name1 = rosterToNameMap[team1.rosterId] || `Team ${team1.rosterId}`;
+            const name2 = rosterToNameMap[team2.rosterId] || `Team ${team2.rosterId}`;
+
+            // Highlight who is winning the matchup
+            const leaderClass1 = team1.points > team2.points ? "score-leader" : "";
+            const leaderClass2 = team2.points > team1.points ? "score-leader" : "";
+
+            const matchBox = document.createElement("div");
+            matchBox.className = "matchup-box";
+            matchBox.innerHTML = `
+                <div class="scoreboard-row">
+                    <span class="score-team-name">${name1}</span>
+                    <span class="score-value ${leaderClass1}">${team1.points.toFixed(2)}</span>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="scoreboard-row">
+                    <span class="score-team-name">${name2}</span>
+                    <span class="score-value ${leaderClass2}">${team2.points.toFixed(2)}</span>
+                </div>
             `;
-            tbody.appendChild(tr);
+            scoreboardContainer.appendChild(matchBox);
         });
+        // --- END OF LIVE SCOREBOARD RENDER BLOCK ---
+
+        // 5. Sort standings by total points scored
+        rosters.sort((a,b) => {
+            const scoreA = (a.settings?.fpts || 0) + ((a.settings?.fpts_decimal || 0) / 100);
+            const scoreB = (b.settings?.fpts || 0) + ((b.settings?.fpts_decimal || 0) / 100);
+            return scoreB - scoreA;
+        });
+
+        // 6. Render the Standings Table
+        const standingsBody = document.querySelector("#standings tbody");
+        standingsBody.innerHTML = "";
+
+        rosters.forEach(team => {
+            const basePoints = team.settings?.fpts || 0;
+            const decimalPoints = team.settings?.fpts_decimal || 0;
+            const points = basePoints + (decimalPoints / 100);
+            
+            const wins = team.settings?.wins || 0;
+            const losses = team.settings?.losses || 0;
+            const customDisplayName = fullDisplayMap[team.owner_id] || ("Team " + team.roster_id);
+
+            // Calculate FAAB tracking metrics
+            const faabUsed = team.settings?.waiver_budget_used || 0;
+            const faabRemaining = TOTAL_FAAB_BUDGET - faabUsed;
+
+            standingsBody.innerHTML += `
+                <tr>
+                    <td class="col-team"><strong>${customDisplayName}</strong></td>
+                    <td class="col-record">${wins}-${losses}</td>
+                    <td class="col-pf"><strong>${points.toFixed(2)}</strong></td>
+                    <td class="col-faab">$${faabRemaining}</td>
+                </tr>
+            `;
+        });
+        
+        // 7. Render the Live FAAB & Transaction Ledger Table
+        const txBody = document.querySelector("#transactionsTable tbody");
+        txBody.innerHTML = "";
+
+        // Only look at successful completions (waivers, free agent pickups, and trades)
+        const completedTx = (rawTransactions || []).filter(t => t.status === "complete");
+
+        if (completedTx.length === 0) {
+            txBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 15px;">No transactions completed yet for Week ${currentWeek}.</td></tr>`;
+        } else {
+            // Take the 8 most recent moves to keep the homepage table clean
+            completedTx.slice(0, 8).forEach(tx => {
+                let txType = tx.type.toUpperCase(); // "WAIVER", "FREE_AGENT", or "TRADE"
+                let detailsText = "";
+                let faabDisplay = "—";
+                let executionTeam = "Multi-Team";
+
+                // Format text if it's a Waiver or Free Agent move
+                if (txType === "WAIVER" || txType === "FREE_AGENT") {
+                    const primaryRosterId = tx.roster_ids[0];
+                    executionTeam = rosterToNameMap[primaryRosterId] || "Unknown Team";
+                    
+                    let addedNames = [];
+                    let droppedNames = [];
+
+                    if (tx.adds) {
+                        Object.keys(tx.adds).forEach(pId => {
+                            const p = players[pId];
+                            addedNames.push(p ? `${p.first_name[0]}. ${p.last_name} (${p.position})` : `Player ${pId}`);
+                        });
+                    }
+                    if (tx.drops) {
+                        Object.keys(tx.drops).forEach(pId => {
+                            const p = players[pId];
+                            droppedNames.push(p ? `${p.first_name[0]}. ${p.last_name}` : `Player ${pId}`);
+                        });
+                    }
+
+                    if (addedNames.length > 0 && droppedNames.length > 0) {
+                        detailsText = `Added <strong>${addedNames.join(', ')}</strong>, Dropped ${droppedNames.join(', ')}`;
+                    } else if (addedNames.length > 0) {
+                        detailsText = `Picked up <strong>${addedNames.join(', ')}</strong>`;
+                    } else if (droppedNames.length > 0) {
+                        detailsText = `Dropped ${droppedNames.join(', ')}`;
+                    }
+
+                    // Check if it's a Waiver bid with FAAB attached
+                    if (tx.settings && tx.settings.waiver_bid !== undefined) {
+                        faabDisplay = `$${tx.settings.waiver_bid}`;
+                    } else if (txType === "FREE_AGENT") {
+                        faabDisplay = "$0";
+                    }
+                    
+                    if (txType === "FREE_AGENT") txType = "Free Agent";
+                    if (txType === "WAIVER") txType = "📝 Waiver Claim";
+
+                } else if (txType === "TRADE") {
+                    txType = "🤝 Trade Completed";
+                    detailsText = "Players and/or draft assets exchanged between managers.";
+                    faabDisplay = "—";
+                }
+
+                txBody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: 600; font-size: 0.88rem; color: var(--text-muted);">${txType}</td>
+                        <td style="font-size: 0.9rem;">${detailsText}</td>
+                        <td style="text-align: center; font-weight: bold; color: ${faabDisplay !== '—' && faabDisplay !== '$0' ? 'var(--success-color)' : 'var(--text-main)'};">${faabDisplay}</td>
+                        <td style="text-align: right; font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${executionTeam}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 8. Render the Redesigned Depth-Chart Roster Cards
+        const rosterContainer = document.getElementById("rosters");
+        rosterContainer.innerHTML = "";
+
+        rosters.forEach(team => {
+            const customDisplayName = fullDisplayMap[team.owner_id] || ("Team " + team.roster_id);
+            
+            const starterIds = team.starters || [];
+            const allPlayerIds = team.players || [];
+            
+            // Map full player data objects from your local cron job file cache
+            let startersList = starterIds.map(id => players[id]).filter(p => p !== undefined);
+            
+            // Isolate bench players by excluding active starting slot IDs
+            let benchList = allPlayerIds
+                .filter(id => !starterIds.includes(id))
+                .map(id => players[id])
+                .filter(p => p !== undefined);
+
+            // Positional sorting comparator function
+            const sortPositions = (a, b) => {
+                let indexA = positionOrder.indexOf(a.position);
+                let indexB = positionOrder.indexOf(b.position);
+                if (indexA === -1) indexA = 99;
+                if (indexB === -1) indexB = 99;
+                return indexA - indexB;
+            };
+
+            startersList.sort(sortPositions);
+            benchList.sort(sortPositions);
+
+            // Generate HTML markup strings for starter lists
+            let playerRowsHtml = "";
+            startersList.forEach(p => {
+                const posClass = "pos-" + (p.position || "DEF");
+                playerRowsHtml += `
+                    <tr>
+                        <td style="width: 50px;"><span class="pos-pill ${posClass}">${p.position || "DEF"}</span></td>
+                        <td><strong>${p.full_name}</strong></td>
+                        <td style="text-align: right; color: var(--text-muted); font-size: 0.8rem;">${p.team || "FA"}</td>
+                    </tr>
+                `;
+            });
+
+            // Append Bench Divider and calculate bench player elements
+            if (benchList.length > 0) {
+                playerRowsHtml += `
+                    <tr>
+                        <td colspan="3" class="bench-divider">Bench Players</td>
+                    </tr>
+                `;
+                
+                benchList.forEach(p => {
+                    const posClass = "pos-" + (p.position || "DEF");
+                    playerRowsHtml += `
+                        <tr>
+                            <td style="width: 50px;"><span class="pos-pill ${posClass}">${p.position || "DEF"}</span></td>
+                            <td style="color: #4b5563;">${p.full_name}</td>
+                            <td style="text-align: right; color: var(--text-muted); font-size: 0.8rem;">${p.team || "FA"}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Inject the complete table assembly into your grid layout
+            rosterContainer.innerHTML += `
+                <div class="team-roster-box">
+                    <div class="team-roster-header">
+                        <h3>${customDisplayName}</h3>
+                    </div>
+                    <table class="roster-mini-table">
+                        <tbody>
+                            ${playerRowsHtml || '<tr><td colspan="3">No Players Rostered</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        });
+    } catch (err) {
+        console.error("Failed to parse Sleeper league details:", err);
     }
-    
-    window.addEventListener('DOMContentLoaded', loadStandings);
+}
+
+// Initial engine execution bootstrap and auto-refresh intervals
+loadLeague();
+setInterval(loadLeague, 300000);
 </script>
+
+
 </body>
 </html>
