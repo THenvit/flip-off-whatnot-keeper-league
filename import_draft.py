@@ -28,7 +28,7 @@ print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 # Fetch all required data feeds concurrently
 drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
 rosters_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
-master_players = fetch_json("https://githubusercontent.com") or {}
+master_players = fetch_json("public/players.json") or {}
 
 # Validate drafts structure
 if not drafts_list or not isinstance(drafts_list, list) or len(drafts_list) == 0:
