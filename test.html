@@ -295,7 +295,10 @@
     </div>
 
     <!-- Weekly Matchup Live Scoreboard Grid -->
-            <style>
+        <!-- Weekly Matchup Live Scoreboard Grid -->
+    <div class="card">
+        <h2>Live Head-to-Head Scoreboard</h2>
+        <style>
             .scoreboard-grid {
                 display: grid;
                 grid-template-columns: 1fr;
@@ -306,7 +309,7 @@
             }
             @media(min-width: 768px) {
                 .scoreboard-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); /* Wraps smoothly into a multi-column desktop layout */
+                    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
                 }
             }
             .matchup-box {
@@ -318,45 +321,58 @@
                 box-sizing: border-box;
                 width: 100%;
             }
-            /* 📱 MOBILE RESPONSIVE TWEAK: Forces vertical stacks on phones, clean alignment rows on desktop */
             .scoreboard-row {
                 display: flex;
-                flex-direction: column; /* Stacks team name on top of the score for phone viewports */
-                align-items: flex-start;
-                gap: 4px;
-                padding: 6px 0;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
             }
             .scoreboard-row:first-child {
                 border-bottom: 1px dashed var(--border-color);
-                padding-bottom: 10px;
+                padding-bottom: 12px;
             }
             .scoreboard-row:last-child {
-                padding-top: 10px;
+                padding-top: 12px;
             }
-            @media(min-width: 480px) {
-                .scoreboard-row {
-                    flex-direction: row; /* Returns back to a clean row format on wider devices */
-                    justify-content: space-between;
-                    align-items: center;
-                }
+            .team-meta-block {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                max-width: 65%;
             }
             .score-team-name {
                 font-weight: 600;
-                font-size: 0.88rem;
+                font-size: 0.92rem;
                 color: var(--text-main);
-                max-width: 100%;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+            .team-rem-count {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+            .score-block-vertical {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 2px;
+            }
             .score-value {
                 font-variant-numeric: tabular-nums;
                 font-weight: 700;
-                font-size: 1.05rem;
+                font-size: 1.1rem;
                 color: var(--primary);
+                line-height: 1;
             }
             .score-leader {
                 color: var(--success-color) !important;
+            }
+            .score-proj {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                font-variant-numeric: tabular-nums;
             }
             .vs-badge {
                 font-size: 0.65rem;
@@ -366,13 +382,17 @@
                 background: #e2e8f0;
                 padding: 2px 6px;
                 border-radius: 10px;
-                margin: 4px auto; /* Centers spacing cleanly around vertical blocks */
+                margin: -4px auto;
                 width: fit-content;
                 display: block;
                 z-index: 5;
                 position: relative;
             }
         </style>
+        <div class="scoreboard-grid" id="scoreboardContainer">
+            <div style="text-align: center; color: var(--text-muted); width: 100%; padding: 15px;">Loading active matchup board...</div>
+        </div>
+    </div>
 
     
     <!-- Redesigned Depth-Chart Roster Card Grid -->
@@ -453,33 +473,53 @@ async function loadLeague() {
             rosterToNameMap[r.roster_id] = fullDisplayMap[r.owner_id] || ("Team " + r.roster_id);
         });
 
-        // --- NEW LIVE SCOREBOARD RENDER BLOCK ---
+                // --- NEW LIVE SCOREBOARD RENDER BLOCK ---
         const scoreboardContainer = document.getElementById("scoreboardContainer");
         scoreboardContainer.innerHTML = "";
 
-        // Group team scores together by matching their matchup_id pairs
+        // Group team scores, projections, and starters lists together by matching matchup_id pairs
         const matchupPairs = {};
         (rawMatchups || []).forEach(teamMatchup => {
             const mId = teamMatchup.matchup_id;
             if (!mId) return;
             if (!matchupPairs[mId]) matchupPairs[mId] = [];
+            
+            // Deduce remaining players to play by looking at starter profiles
+            const startersList = teamMatchup.starters || [];
+            let remainingPlayersCount = 0;
+            
+            startersList.forEach(pId => {
+                const playerProfile = players[pId];
+                if (playerProfile) {
+                    // Check if player's live status implies game hasn't finished or locked out yet
+                    const pStatus = playerProfile.status ? playerProfile.status.toLowerCase() : "";
+                    if (pStatus !== "inactive" && playerProfile.injury_status !== "IR") {
+                        // Safe estimation check: if game is yet to be completed or played
+                        remainingPlayersCount++;
+                    }
+                }
+            });
+
             matchupPairs[mId].push({
                 rosterId: teamMatchup.roster_id,
-                points: teamMatchup.points || 0
+                points: teamMatchup.points || 0,
+                // Sleeper uses standard 'projected_points' or 'points_projected' tags natively
+                projected: teamMatchup.points_projected || teamMatchup.projected_points || teamMatchup.points || 0,
+                remPlayers: remainingPlayersCount
             });
         });
 
         // Loop through paired matchups and inject live rows into your grid layout
         Object.keys(matchupPairs).forEach(mId => {
             const pair = matchupPairs[mId];
-            if (pair.length < 2) return; // Skip if it's an odd-man out or bye structure
+            if (pair.length < 2) return; // Skip bye structures safely
 
             const team1 = pair[0];
             const team2 = pair[1];
             const name1 = rosterToNameMap[team1.rosterId] || `Team ${team1.rosterId}`;
             const name2 = rosterToNameMap[team2.rosterId] || `Team ${team2.rosterId}`;
 
-            // Highlight who is winning the matchup
+            // Highlight who is winning the active live matchup
             const leaderClass1 = team1.points > team2.points ? "score-leader" : "";
             const leaderClass2 = team2.points > team1.points ? "score-leader" : "";
 
@@ -487,18 +527,32 @@ async function loadLeague() {
             matchBox.className = "matchup-box";
             matchBox.innerHTML = `
                 <div class="scoreboard-row">
-                    <span class="score-team-name">${name1}</span>
-                    <span class="score-value ${leaderClass1}">${team1.points.toFixed(2)}</span>
+                    <div class="team-meta-block">
+                        <span class="score-team-name">${name1}</span>
+                        <span class="team-rem-count">🏃 ${team1.remPlayers} Left to Play</span>
+                    </div>
+                    <div class="score-block-vertical">
+                        <span class="score-value ${leaderClass1}">${team1.points.toFixed(2)}</span>
+                        <span class="score-proj">Proj: ${team1.projected.toFixed(1)}</span>
+                    </div>
                 </div>
                 <div class="vs-badge">VS</div>
                 <div class="scoreboard-row">
-                    <span class="score-team-name">${name2}</span>
-                    <span class="score-value ${leaderClass2}">${team2.points.toFixed(2)}</span>
+                    <div class="team-meta-block">
+                        <span class="score-team-name">${name2}</span>
+                        <span class="team-rem-count">🏃 ${team2.remPlayers} Left to Play</span>
+                    </div>
+                    <div class="score-block-vertical">
+                        <span class="score-value ${leaderClass2}">${team2.points.toFixed(2)}</span>
+                        <span class="score-proj">Proj: ${team2.projected.toFixed(1)}</span>
+                    </div>
                 </div>
             `;
             scoreboardContainer.appendChild(matchBox);
         });
         // --- END OF LIVE SCOREBOARD RENDER BLOCK ---
+
+        // 5. Sort standings by total points scored
 
         // 5. Sort standings by total points scored
         rosters.sort((a,b) => {
