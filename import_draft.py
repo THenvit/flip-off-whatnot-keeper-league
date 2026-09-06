@@ -11,10 +11,8 @@ except Exception as e:
     LEAGUE_ID = None
 
 if not LEAGUE_ID:
-    print("Warning: LEAGUE_ID missing or config.json unreadable. Saving blank fallback.")
-    with open("roster-history.json", "w") as f:
-        json.dump({}, f)
-    exit(0)
+    print("Error: LEAGUE_ID missing from config.json.")
+    exit(1)
 
 def fetch_json(url):
     try:
@@ -25,42 +23,44 @@ def fetch_json(url):
         print(f"Error calling {url}: {e}")
         return None
 
-print("Connecting to Sleeper league draft streams...")
+print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
 drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
 
-if not drafts_list or len(drafts_list) == 0:
-    print("Warning: No completed draft history found for this league ID yet. Saving empty template.")
-    with open("roster-history.json", "w") as f:
-        json.dump({}, f)
-    exit(0)
+# Validate that the drafts endpoint returned a proper list structure
+if not drafts_list or not isinstance(drafts_list, list) or len(drafts_list) == 0:
+    print("Error: No valid draft history arrays returned by the Sleeper API.")
+    exit(1)
 
-# Isolate the primary completed draft ID from your league context array
-# Sleeper returns drafts as a list of dicts
-main_draft_id = drafts_list[0].get("draft_id") if isinstance(drafts_list, list) else drafts_list.get("draft_id")
+# Isolate the main draft ID by looking at the first item in the list
+main_draft_id = drafts_list[0].get("draft_id")
 
 if not main_draft_id:
-    print("Could not locate a valid draft_id. Saving empty fallback.")
-    with open("roster-history.json", "w") as f:
-        json.dump({}, f)
-    exit(0)
+    print("Error: Could not locate a valid draft_id inside the league data.")
+    exit(1)
 
-print(f"Downloading picks list from draft board ID: {main_draft_id}...")
+print(f"Successfully located main draft board ID: {main_draft_id}")
+print("Downloading completed picks list...")
+
 picks_data = fetch_json(f"https://api.sleeper.app/v1/{main_draft_id}/picks") or []
 
-# 2. Build your local tracking dictionary mapping template
+if not picks_data or len(picks_data) == 0:
+    print("Warning: The draft board appears to be empty or has not finished yet.")
+    exit(1)
+
+# 2. Rebuild your roster-history JSON mapping database
 draft_history_map = {}
 
 for pick in picks_data:
     player_id = pick.get("player_id")
     if player_id:
-        # Map the exact round they were selected in to their unique player ID token string
+        # Index the draft round using the player's unique Sleeper ID
         draft_history_map[str(player_id)] = {
             "draft_round": pick.get("round"),
-            "keeper_count": 0  # Resets to 0 since they were newly selected on the board
+            "keeper_count": 0  # Resets to 0 since they are newly drafted onto rosters
         }
 
 # 3. Export to your static JSON database file
 with open("roster-history.json", "w") as f:
     json.dump(draft_history_map, f, indent=4)
 
-print(f"Import successful! Map compiled for {len(draft_history_map)} draft slots inside roster-history.json.")
+print(f"🎉 Import successful! Compiled {len(draft_history_map)} player pick rounds directly into roster-history.json.")
