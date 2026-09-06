@@ -51,14 +51,22 @@ if not drafts_list:
     print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
-main_draft_id = drafts_list.get("draft_id") if isinstance(drafts_list, list) else drafts_list.get("draft_id")
+# FIXED DRAFT LIST PARSING: Safely extract draft_id from list arrays or single dictionaries
+if isinstance(drafts_list, list):
+    if len(drafts_list) == 0:
+        print("Error: Sleeper returned an empty drafts list.")
+        exit(1)
+    # Target the first primary draft dictionary inside the list container array
+    main_draft_id = drafts_list[0].get("draft_id")
+else:
+    main_draft_id = drafts_list.get("draft_id")
 
 if not main_draft_id:
     print("Error: Could not locate a valid draft_id.")
     exit(1)
 
 print(f"Located main draft board ID: {main_draft_id}")
-picks_data = fetch_json(f"https://sleeper.app/v1/draft{main_draft_id}/picks") or []
+picks_data = fetch_json(f"https://sleeper.app/v1/draft/{main_draft_id}/picks") or []
 
 # 3. Cache draft round positions and automated keeper status flags by Player ID
 draft_lookup = {}
