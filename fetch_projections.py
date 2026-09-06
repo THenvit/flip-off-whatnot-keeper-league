@@ -12,7 +12,6 @@ except Exception as e:
 
 if not LEAGUE_ID:
     print("Warning: LEAGUE_ID missing or config.json unreadable. Defaulting to empty fallback.")
-    # Safe empty fallback mapping so the file writes empty structure instead of breaking with Exit Code 1
     with open("live_projections.json", "w") as f:
         json.dump({}, f)
     exit(0)
@@ -34,11 +33,19 @@ current_year = nfl_state.get("season") or "2026"
 print(f"Fetching Week {current_week} matchup grids...")
 matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{current_week}") or []
 
-# 2. Query Sleeper's raw master projections matrix using specific position tracking tags
+# 2. Query Sleeper's raw master projections list matrix
 print("Downloading live player projections stream...")
 positions_query = "&position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K&position[]=DEF&position[]=FLEX"
 proj_url = f"https://api.sleeper.app/projections/nfl/{current_year}/{current_week}?season_type=regular&order_by=ppr{positions_query}"
-raw_projections = fetch_json(proj_url) or {}
+raw_projections_list = fetch_json(proj_url) or []
+
+# CONVERT list matrix into a highly searchable player dictionary lookup
+projections_dict = {}
+if isinstance(raw_projections_list, list):
+    for player_obj in raw_projections_list:
+        p_id = player_obj.get("player_id")
+        if p_id:
+            projections_dict[str(p_id)] = player_obj
 
 # 3. Sum up the live player projections for each team's starters
 calculated_projections = {}
@@ -48,10 +55,12 @@ for team in matchups:
     
     total_team_projection = 0.0
     for player_id in starters:
-        # Match player ID against Sleeper's live player projections mapping
-        player_data = raw_projections.get(str(player_id)) or {}
-        # Default to a standard zero projection if player is on a bye or out
-        total_team_projection += player_data.get("stats", {}).get("pts_ppr", 0.0)
+        # Match player ID against our newly mapped searchable lookups
+        player_data = projections_dict.get(str(player_id)) or {}
+        
+        # Extract dynamic point allocation matrix numbers securely
+        player_stats = player_data.get("stats") or {}
+        total_team_projection += player_stats.get("pts_ppr", 0.0)
     
     calculated_projections[str(roster_id)] = round(total_team_projection, 2)
 
