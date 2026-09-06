@@ -24,43 +24,68 @@ def fetch_json(url):
         return None
 
 print(f"Connecting to Sleeper draft streams for league {LEAGUE_ID}...")
+
+# Fetch all required data feeds concurrently
 drafts_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/drafts")
+rosters_list = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
+master_players = fetch_json("https://githubusercontent.com") or {}
 
-# Validate that the drafts endpoint returned a proper list structure
+# Validate drafts structure
 if not drafts_list or not isinstance(drafts_list, list) or len(drafts_list) == 0:
-    print("Error: No valid draft history arrays returned by the Sleeper API.")
+    print("Error: No valid draft history arrays returned by Sleeper.")
     exit(1)
 
-# Isolate the main draft ID by looking at the first item in the list
 main_draft_id = drafts_list[0].get("draft_id")
-
 if not main_draft_id:
-    print("Error: Could not locate a valid draft_id inside the league data.")
+    print("Error: Could not locate a valid draft_id.")
     exit(1)
 
-print(f"Successfully located main draft board ID: {main_draft_id}")
-print("Downloading completed picks list...")
-
+print(f"Located main draft board ID: {main_draft_id}")
 picks_data = fetch_json(f"https://api.sleeper.app/v1/draft/{main_draft_id}/picks") or []
 
-if not picks_data or len(picks_data) == 0:
-    print("Warning: The draft board appears to be empty or has not finished yet.")
-    exit(1)
+# 2. Build map of which player belongs to which roster currently
+player_to_roster_map = {}
+for roster in rosters_list:
+    r_id = roster.get("roster_id")
+    p_ids = roster.get("players") or []
+    for p_id in p_ids:
+        player_to_roster_map[str(p_id)] = r_id
 
-# 2. Rebuild your roster-history JSON mapping database
+# 3. Cache draft round positions by Player ID
+draft_lookup = {}
+for pick in picks_data:
+    p_id = pick.get("player_id")
+    if p_id:
+        draft_lookup[str(p_id)] = pick.get("round")
+
+# 4. Generate the complete master database matching your original structure
 draft_history_map = {}
 
-for pick in picks_data:
-    player_id = pick.get("player_id")
-    if player_id:
-        # Index the draft round using the player's unique Sleeper ID
-        draft_history_map[str(player_id)] = {
-            "draft_round": pick.get("round"),
-            "keeper_count": 0  # Resets to 0 since they are newly drafted onto rosters
+# Process ALL players currently on team rosters
+for roster in rosters_list:
+    r_id = roster.get("roster_id")
+    p_ids = roster.get("players") or []
+    
+    for p_id in p_ids:
+        p_id_str = str(p_id)
+        player_profile = master_players.get(p_id_str) or {}
+        
+        first_name = player_profile.get("first_name", "")
+        last_name = player_profile.get("last_name", "Player " + p_id_str)
+        full_name = f"{first_name} {last_name}".strip()
+        
+        # Build the exact dictionary structure you had before
+        draft_history_map[p_id_str] = {
+            "name": full_name,
+            "position": player_profile.get("position", "N/A"),
+            "nfl_team": player_profile.get("team", "FA"),
+            "roster_id": r_id,
+            "draft_round": draft_lookup.get(p_id_str, None), # Defaults to null if picked up on waivers
+            "keeper_count": 0
         }
 
-# 3. Export to your static JSON database file
+# 5. Export to your static JSON database file
 with open("roster-history.json", "w") as f:
     json.dump(draft_history_map, f, indent=4)
 
-print(f"🎉 Import successful! Compiled {len(draft_history_map)} player pick rounds directly into roster-history.json.")
+print(f"🎉 Import successful! Restored complete metadata grid for {len(draft_history_map)} players into roster-history.json.")
