@@ -238,7 +238,7 @@
             // Pull matchup datasets concurrently for all historical weeks
             for (let w = 1; w < currentWeek; w++) {
                 matchupPromises.push(
-                    fetch(`https://sleeper.app${LEAGUE_ID}/matchups/${w}`)
+                    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/matchups/${w}`)
                         .then(res => res.json())
                         .catch(() => [])
                 );
