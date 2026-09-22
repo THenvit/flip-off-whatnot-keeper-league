@@ -65,7 +65,7 @@ for r_id, stats in team_baselines.items():
 
 # 3. Compile the remaining schedule calendar matrix
 future_schedule = []
-for w in range(current_week, TOTAL_WEEKS + 1):
+for w in range(current_week + 1, TOTAL_WEEKS + 1):
     matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
     # Group opponents matching the same matchup_id
     pairs = {}
