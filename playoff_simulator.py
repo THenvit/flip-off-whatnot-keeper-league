@@ -52,12 +52,15 @@ for w in range(1, current_week):
         if r_id in team_baselines:
             team_baselines[r_id]["weekly_scores"].append(m.get("points", 0))
 
-# Assign statistical projections per team
+# Assign statistical projections per team with a fixed volatility floor
 for r_id, stats in team_baselines.items():
     scores = stats["weekly_scores"]
     if len(scores) > 0:
         stats["avg_score"] = float(np.mean(scores))
-        stats["std_dev"] = float(np.std(scores)) if len(scores) > 1 else 12.0
+        
+        # FIXED VOLATILITY FLOOR: Prevents early season consistency from breaking the model
+        calculated_std = float(np.std(scores)) if len(scores) > 1 else 12.0
+        stats["std_dev"] = max(12.0, calculated_std) # Forces a minimum 12-point standard deviation swing
     else:
         # Season opening fallbacks if historical stats are empty yet
         stats["avg_score"] = 115.0
