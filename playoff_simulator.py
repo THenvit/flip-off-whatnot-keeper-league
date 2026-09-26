@@ -113,19 +113,28 @@ for w in range(current_week + 1, TOTAL_WEEKS + 1):
         if len(teams) == 2:
             future_schedule.append((teams[0], teams[1]))
 
-# 5. Execute Monte Carlo core simulation loops
+# 5. Execute Monte Carlo core simulation loops with fair tiebreaker mapping
 print(f"Simulating future schedule calendar {SIMULATIONS} times...")
 playoff_appearances = {r_id: 0 for r_id in team_baselines}
 
 for _ in range(SIMULATIONS):
-    sim_standings = {r_id: {k: v for k, v in stats.items() if k != "weekly_scores"} for r_id, stats in team_baselines.items()}
+    # FIXED: Clear out the massive historical points for head start inside the simulation loop pass.
+    # Every team starts at 0.0 simulated points so future tiebreakers are calculated purely on future performance.
+    sim_standings = {}
+    for r_id, stats in team_baselines.items():
+        sim_standings[r_id] = {
+            "roster_id": r_id,
+            "wins": stats["wins"],
+            "losses": stats["losses"],
+            "pf": 0.0  # Resets the point wall entirely
+        }
     
     for team_a_id, team_b_id in future_schedule:
         team_a = sim_standings[team_a_id]
         team_b = sim_standings[team_b_id]
         
-        score_a = random.normalvariate(team_a["avg_score"], team_a["std_dev"])
-        score_b = random.normalvariate(team_b["avg_score"], team_b["std_dev"])
+        score_a = random.normalvariate(team_baselines[team_a_id]["avg_score"], team_baselines[team_a_id]["std_dev"])
+        score_b = random.normalvariate(team_baselines[team_b_id]["avg_score"], team_baselines[team_b_id]["std_dev"])
         
         team_a["pf"] += score_a
         team_b["pf"] += score_b
@@ -137,11 +146,13 @@ for _ in range(SIMULATIONS):
             team_b["wins"] += 1
             team_a["losses"] += 1
 
+    # Sort simulated league standings by wins, then simulated points for tiebreakers
     sorted_teams = list(sim_standings.values())
     sorted_teams.sort(key=lambda x: (x["wins"], x["pf"]), reverse=True)
     
     for rank in range(PLAYOFF_SLOTS):
         playoff_appearances[sorted_teams[rank]["roster_id"]] += 1
+
 
 # 6. Format and export output data
 output_odds = {}
