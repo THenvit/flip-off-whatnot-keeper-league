@@ -3,7 +3,6 @@ import random
 import numpy as np
 import urllib.request
 
-# 1. Load central configurations securely
 with open("config.json", "r") as f:
     config = json.load(f)
 LEAGUE_ID = config.get("LEAGUE_ID")
@@ -14,6 +13,7 @@ if not LEAGUE_ID:
 TOTAL_WEEKS = 14  
 PLAYOFF_SLOTS = 6  
 SIMULATIONS = 10000
+BASE_URL = "https://api.sleeper.app/v1/"
 
 def fetch_json(url):
     try:
@@ -25,82 +25,61 @@ def fetch_json(url):
         return None
 
 print("Connecting to Sleeper API data streams...")
-nfl_state = fetch_json("https://api.sleeper.app/v1/state/nfl") or {}
-# Safely isolate what week we are currently playing
+nfl_state = fetch_json(f"{BASE_URL}state/nfl") or {}
 current_week = nfl_state.get("display_week") or nfl_state.get("week") or 1
 
-rosters = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/rosters") or []
+rosters = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/rosters") or []
 
-# 2. Map baseline records from the live standings data
 team_baselines = {}
 for r in rosters:
     roster_id = r["roster_id"]
     team_baselines[roster_id] = {
         "roster_id": roster_id,
-        "wins": r["settings"].get("wins", 0),
-        "losses": r["settings"].get("losses", 0),
-        "ties": r["settings"].get("ties", 0),
-        "pf": r["settings"].get("fpts", 0) + (r["settings"].get("fpts_decimal", 0) / 100),
+        "wins": 0, "losses": 0, "ties": 0, "pf": 0.0,
         "weekly_scores": []
     }
-# 3. Pull historical scores to build pure current-season records
-# We reset baseline wins/losses to 0 and calculate purely from the active calendar
 for w in range(1, current_week):
-    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
-    
-    if w == 1:
-        for r_id in team_baselines:
-            team_baselines[r_id]["wins"] = 0
-            team_baselines[r_id]["losses"] = 0
-            team_baselines[r_id]["ties"] = 0
-
+    matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}") or []
     pairs = {}
     for m in matchups:
         r_id = m.get("roster_id")
         m_id = m.get("matchup_id")
+        points = m.get("points", 0)
+        
         if r_id in team_baselines:
-            team_baselines[r_id]["weekly_scores"].append(m.get("points", 0))
+            team_baselines[r_id]["weekly_scores"].append(points)
+            team_baselines[r_id]["pf"] += points
         
         if m_id is not None:
             if m_id not in pairs:
                 pairs[m_id] = []
-            pairs[m_id].append(m)
+            pairs[m_id].append({"roster_id": r_id, "points": points})
 
-    # Tally pure current-season head-to-head records
     for m_id, teams in pairs.items():
         if len(teams) == 2:
             t1, t2 = teams[0], teams[1]
-            p1, p2 = t1.get("points", 0), t2.get("points", 0)
-            id1, id2 = t1.get("roster_id"), t2.get("roster_id")
-            
-            if p1 > p2:
-                team_baselines[id1]["wins"] += 1
-                team_baselines[id2]["losses"] += 1
-            elif p2 > p1:
-                team_baselines[id2]["wins"] += 1
-                team_baselines[id1]["losses"] += 1
+            if t1["points"] > t2["points"]:
+                team_baselines[t1["roster_id"]]["wins"] += 1
+                team_baselines[t2["roster_id"]]["losses"] += 1
+            elif t2["points"] > t1["points"]:
+                team_baselines[t2["roster_id"]]["wins"] += 1
+                team_baselines[t1["roster_id"]]["losses"] += 1
             else:
-                team_baselines[id1]["ties"] += 1
-                team_baselines[id2]["ties"] += 1
+                team_baselines[t1["roster_id"]]["ties"] += 1
+                team_baselines[t2["roster_id"]]["ties"] += 1
 
-# Assign statistical averages and force a realistic, high-variance early season floor
 for r_id, stats in team_baselines.items():
     scores = stats["weekly_scores"]
     if len(scores) > 0:
         stats["avg_score"] = float(np.mean(scores))
-        
-        # EARLY SEASON AMPLIFIER: Clamps the volatility floor to a realistic 18.0 scoring swing
-        # This prevents teams from being modeled as perfectly robotic scorers early in the year
         calc_std = float(np.std(scores)) if len(scores) > 1 else 18.0
         stats["std_dev"] = max(18.0, calc_std) 
     else:
-        stats["avg_score"] = 115.0
-        stats["std_dev"] = 18.0
+        stats["avg_score"] = 115.0; stats["std_dev"] = 18.0
 
-# 4. Build the REMAINING calendar schedule matrix
 future_schedule = []
 for w in range(current_week + 1, TOTAL_WEEKS + 1):
-    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
+    matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}") or []
     pairs = {}
     for m in matchups:
         m_id = m.get("matchup_id")
@@ -111,22 +90,19 @@ for w in range(current_week + 1, TOTAL_WEEKS + 1):
     
     for m_id, teams in pairs.items():
         if len(teams) == 2:
+            # FIXED: Unpacks the two roster IDs cleanly into a single tuple pair
             future_schedule.append((teams[0], teams[1]))
-
-# 5. Execute Monte Carlo core simulation loops with fair tiebreaker mapping
 print(f"Simulating future schedule calendar {SIMULATIONS} times...")
 playoff_appearances = {r_id: 0 for r_id in team_baselines}
 
 for _ in range(SIMULATIONS):
-    # FIXED: Clear out the massive historical points for head start inside the simulation loop pass.
-    # Every team starts at 0.0 simulated points so future tiebreakers are calculated purely on future performance.
     sim_standings = {}
     for r_id, stats in team_baselines.items():
         sim_standings[r_id] = {
             "roster_id": r_id,
             "wins": stats["wins"],
             "losses": stats["losses"],
-            "pf": 0.0  # Resets the point wall entirely
+            "pf": stats["pf"] # Carry forward historical points accurately for fair tiebreaker sorting
         }
     
     for team_a_id, team_b_id in future_schedule:
@@ -146,15 +122,12 @@ for _ in range(SIMULATIONS):
             team_b["wins"] += 1
             team_a["losses"] += 1
 
-    # Sort simulated league standings by wins, then simulated points for tiebreakers
     sorted_teams = list(sim_standings.values())
     sorted_teams.sort(key=lambda x: (x["wins"], x["pf"]), reverse=True)
     
     for rank in range(PLAYOFF_SLOTS):
         playoff_appearances[sorted_teams[rank]["roster_id"]] += 1
 
-
-# 6. Format and export output data
 output_odds = {}
 total_wins_recorded = sum(stats["wins"] for stats in team_baselines.values())
 
