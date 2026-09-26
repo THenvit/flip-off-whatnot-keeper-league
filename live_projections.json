@@ -1,14 +1,98 @@
 {
-    "1": 0.0,
-    "2": 0.0,
-    "3": 0.0,
-    "4": 0.0,
-    "5": 0.0,
-    "6": 0.0,
-    "7": 0.0,
-    "8": 0.0,
-    "9": 0.0,
-    "10": 0.0,
-    "11": 0.0,
-    "12": 0.0
+    "1": {
+        "roster_id": 1,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "2": {
+        "roster_id": 2,
+        "current_score": 41.9,
+        "projected_score": 41.9,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "3": {
+        "roster_id": 3,
+        "current_score": 21.0,
+        "projected_score": 21.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "4": {
+        "roster_id": 4,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "5": {
+        "roster_id": 5,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "6": {
+        "roster_id": 6,
+        "current_score": 19.48,
+        "projected_score": 19.48,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "7": {
+        "roster_id": 7,
+        "current_score": 51.0,
+        "projected_score": 51.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "8": {
+        "roster_id": 8,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "9": {
+        "roster_id": 9,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "10": {
+        "roster_id": 10,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "11": {
+        "roster_id": 11,
+        "current_score": 0.0,
+        "projected_score": 0.0,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    },
+    "12": {
+        "roster_id": 12,
+        "current_score": 3.8,
+        "projected_score": 3.8,
+        "points_remaining": 0.0,
+        "players_remaining": 0,
+        "remaining_players": []
+    }
 }
