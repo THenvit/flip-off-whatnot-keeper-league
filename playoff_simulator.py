@@ -38,6 +38,7 @@ for r in rosters:
         "wins": 0, "losses": 0, "ties": 0, "pf": 0.0,
         "weekly_scores": []
     }
+# 3. Pull completed historical scores (Weeks 1 and 2)
 for w in range(1, current_week):
     matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}") or []
     pairs = {}
@@ -77,9 +78,9 @@ for r_id, stats in team_baselines.items():
     else:
         stats["avg_score"] = 115.0; stats["std_dev"] = 18.0
 
-# 4. Build the REMAINING calendar schedule matrix (FULLY UNPACKED)
+# 4. Build future schedule (Starts at current_week so Week 3 is accurately simulated!)
 future_schedule = []
-for w in range(current_week + 1, TOTAL_WEEKS + 1):
+for w in range(current_week, TOTAL_WEEKS + 1):
     matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}") or []
     pairs = {}
     for m in matchups:
@@ -91,13 +92,12 @@ for w in range(current_week + 1, TOTAL_WEEKS + 1):
     
     for m_id, teams in pairs.items():
         if len(teams) == 2:
-            # FIXED: Explicitly grabs index 0 and index 1 so they are flat integers
+            # FIXED: Flattens the array tuple using precise indices
             future_schedule.append((teams[0], teams[1]))
-
 print(f"Simulating future schedule calendar {SIMULATIONS} times...")
 playoff_appearances = {r_id: 0 for r_id in team_baselines}
 
-# 5. Execute Monte Carlo core simulation loops
+# 5. Execute Monte Carlo loops with fair, stacked sorting metrics
 for _ in range(SIMULATIONS):
     sim_standings = {}
     for r_id, stats in team_baselines.items():
@@ -105,6 +105,7 @@ for _ in range(SIMULATIONS):
             "roster_id": r_id,
             "wins": stats["wins"],
             "losses": stats["losses"],
+            "ties": stats["ties"],
             "pf": stats["pf"]
         }
     
@@ -121,12 +122,16 @@ for _ in range(SIMULATIONS):
         if score_a > score_b:
             team_a["wins"] += 1
             team_b["losses"] += 1
-        else:
+        elif score_b > score_a:
             team_b["wins"] += 1
             team_a["losses"] += 1
+        else:
+            team_a["ties"] += 1
+            team_b["ties"] += 1
 
     sorted_teams = list(sim_standings.values())
-    sorted_teams.sort(key=lambda x: (x["wins"], x["pf"]), reverse=True)
+    # Sort logically by wins, then ties, then total points for as the ultimate tiebreaker
+    sorted_teams.sort(key=lambda x: (x["wins"], x["ties"], x["pf"]), reverse=True)
     
     for rank in range(PLAYOFF_SLOTS):
         playoff_appearances[sorted_teams[rank]["roster_id"]] += 1
