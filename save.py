@@ -1,137 +1,50 @@
 import json
-import random
-import numpy as np
 import urllib.request
 
-# ----------------- CONFIGURATION -----------------
-# To match your repository setup, we dynamically read your LEAGUE_ID from config.json
-with open("config.json", "r") as f:
-    config = json.load(f)
-LEAGUE_ID = config.get("LEAGUE_ID")
+# 1. Load central configurations securely
+try:
+    with open("config.json", "r") as f:
+        config = json.load(f)
+    LEAGUE_ID = config.get("LEAGUE_ID")
+except Exception as e:
+    print(f"Error reading config.json: {e}")
+    LEAGUE_ID = None
 
 if not LEAGUE_ID:
-    raise ValueError("LEAGUE_ID not found in config.json")
+    print("Error: LEAGUE_ID missing from config.json.")
+    exit(1)
 
-TOTAL_WEEKS = 14  # Regular season length
-PLAYOFF_SLOTS = 6  # Top 6 teams advance
-SIMULATIONS = 10000
+BASE_URL = "https://sleeper.app"
 
-# ----------------- API FETCHERS -----------------
 def fetch_json(url):
     try:
-        with urllib.request.urlopen(url) as response:
-            return json.loads(response.read().decode())
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read().decode())
     except Exception as e:
-        print(f"Error fetching data from {url}: {e}")
+        print(f"Error calling {url}: {e}")
         return None
 
-print("Connecting to Sleeper API streams...")
-nfl_state = fetch_json("https://api.sleeper.app/v1/state/nfl")
+print("Checking live NFL week context...")
+nfl_state = fetch_json(f"{BASE_URL}state/nfl") or {}
 current_week = nfl_state.get("display_week") or nfl_state.get("week") or 1
+current_year = nfl_state.get("season") or "2026"
 
-rosters = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/rosters")
+print(f"Fetching Week {current_week} league matchup grids...")
+matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{current_week}") or []
 
-# 1. Map current historical records and compile point trajectories
-team_baselines = {}
-for r in rosters:
-    roster_id = r["roster_id"]
-    team_baselines[roster_id] = {
-        "roster_id": roster_id,
-        "wins": r["settings"].get("wins", 0),
-        "losses": r["settings"].get("losses", 0),
-        "ties": r["settings"].get("ties", 0),
-        "pf": r["settings"].get("fpts", 0) + (r["settings"].get("fpts_decimal", 0) / 100),
-        "weekly_scores": []
-    }
+# 2. Query Sleeper's master live stats AND projections for the current week
+print("Downloading live player statistics matrix...")
+positions_query = "&position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K&position[]=DEF&position[]=FLEX"
 
-# 2. Gather historical matchup points scored to calculate scoring average + volatility (Standard Deviation)
-for w in range(1, current_week):
-    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
-    for m in matchups:
-        r_id = m.get("roster_id")
-        if r_id in team_baselines:
-            team_baselines[r_id]["weekly_scores"].append(m.get("points", 0))
+# Live Stats URL (Actual points scored so far)
+stats_url = f"https://sleeper.app{current_year}/{current_week}?season_type=regular{positions_query}"
+# Projections URL (Expected points before/during game)
+proj_url = f"https://sleeper.app{current_year}/{current_week}?season_type=regular&order_by=ppr{positions_query}"
 
-# Assign statistical projections per team
-for r_id, stats in team_baselines.items():
-    scores = stats["weekly_scores"]
-    if len(scores) > 0:
-        stats["avg_score"] = float(np.mean(scores))
-        stats["std_dev"] = float(np.std(scores)) if len(scores) > 1 else 12.0
-    else:
-        # Season opening fallbacks if historical stats are empty yet
-        stats["avg_score"] = 115.0
-        stats["std_dev"] = 15.0
+raw_stats_list = fetch_json(stats_url) or []
+raw_proj_list = fetch_json(proj_url) or []
 
-# 3. Compile the remaining schedule calendar matrix
-future_schedule = []
-for w in range(current_week, TOTAL_WEEKS + 1):
-    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
-    # Group opponents matching the same matchup_id
-    pairs = {}
-    for m in matchups:
-        m_id = m.get("matchup_id")
-        if m_id:
-            if m_id not in pairs:
-                pairs[m_id] = []
-            pairs[m_id].append({"roster_id": m["roster_id"]})
-    
-    for m_id, teams in pairs.items():
-        if len(teams) == 2:
-            future_schedule.append((teams[0]["roster_id"], teams[1]["roster_id"]))
-
-# ----------------- MONTE CARLO CORE -----------------
-print(f"Simulating remaining matchups {SIMULATIONS} times via Monte Carlo matrix...")
-playoff_appearances = {r_id: 0 for r_id in team_baselines}
-
-for _ in range(SIMULATIONS):
-    # Deep clone base records for this iteration loop pass
-    sim_standings = {r_id: {k: v for k, v in stats.items() if k != "weekly_scores"} for r_id, stats in team_baselines.items()}
-    
-    # Simulate every upcoming schedule pairing matching historical profiles
-    for team_a_id, team_b_id in future_schedule:
-        team_a = sim_standings[team_a_id]
-        team_b = sim_standings[team_b_id]
-        
-        # Sample points scored using normal standard variations
-        score_a = random.normalvariate(team_a["avg_score"], team_a["std_dev"])
-        score_b = random.normalvariate(team_b["avg_score"], team_b["std_dev"])
-        
-        team_a["pf"] += score_a
-        team_b["pf"] += score_b
-        
-        if score_a > score_b:
-            team_a["wins"] += 1
-            team_b["losses"] += 1
-        elif score_a < score_b:
-            team_b["wins"] += 1
-            team_a["losses"] += 1
-        else:
-            team_a["ties"] += 1
-            team_b["ties"] += 1
-
-    # Sort simulated league standings by wins, then points for tiebreakers
-    sorted_teams = list(sim_standings.values())
-    sorted_teams.sort(key=lambda x: (x["wins"], x["pf"]), reverse=True)
-    
-    # Register the top 6 teams who clenched the playoffs
-    for rank in range(PLAYOFF_SLOTS):
-        clenched_team = sorted_teams[rank]
-        playoff_appearances[clenched_team["roster_id"]] += 1
-
-# 4. Format outputs into a clean JSON export matrix map
-output_odds = {}
-total_wins_recorded = sum(stats["wins"] for stats in team_baselines.values())
-
-for r_id, counts in playoff_appearances.items():
-    # If no games have been played in the league yet, default everyone to an equal 50.0% split
-    if total_wins_recorded == 0:
-        output_odds[str(r_id)] = 50.0
-    else:
-        pct = (counts / SIMULATIONS) * 100
-        output_odds[str(r_id)] = round(pct, 1)
-
-with open("playoff_odds.json", "w") as f:
-    json.dump(output_odds, f, indent=4)
-
-print("Playoff simulation completed successfully! Saved results to playoff_odds.json")
+# Convert both lists into highly searchable dictionary maps
+stats_dict = {str(p.get("player_id")): p for p in raw_stats_list if p.get("player_id")}
+proj_dict = {str(p.get("player_id")): p for p in raw_proj_list if p.get("player_id")}
