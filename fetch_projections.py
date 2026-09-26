@@ -347,7 +347,7 @@ for matchup in matchups:
 # ============================================================
 
 with open(
-    "live_projection_tracker.json",
+    "live_projections.json",
     "w"
 ) as f:
 
