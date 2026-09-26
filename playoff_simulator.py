@@ -103,8 +103,12 @@ for w in range(current_week, TOTAL_WEEKS + 1):
         if len(teams) == 2:
             future_schedule.append((teams[0], teams[1]))
 
-print(f"📦 Total unplayed games loaded into simulation matrix: {len(future_schedule)}")
+print(f"Simulating future schedule calendar {SIMULATIONS} times...")
 
+# FIXED NAME ERROR: Explicitly defines the appearances tracking dictionary matrix baseline
+playoff_appearances = {}
+for r_id in team_baselines:
+    playoff_appearances[r_id] = 0
 
 # 5. Execute Monte Carlo loops with fair, stacked sorting metrics
 for _ in range(SIMULATIONS):
@@ -139,7 +143,7 @@ for _ in range(SIMULATIONS):
             team_b["ties"] += 1
 
     sorted_teams = list(sim_standings.values())
-    # Sort logically by wins, then ties, then total points for as the ultimate tiebreaker
+    # Sort logically by wins, then ties, then total simulated points for as the ultimate tiebreaker
     sorted_teams.sort(key=lambda x: (x["wins"], x["ties"], x["pf"]), reverse=True)
     
     for rank in range(PLAYOFF_SLOTS):
