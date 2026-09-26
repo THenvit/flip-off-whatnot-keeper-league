@@ -1,11 +1,16 @@
 import json
 import urllib.request
 
-# 1. Load central configurations securely
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
 try:
     with open("config.json", "r") as f:
         config = json.load(f)
+
     LEAGUE_ID = config.get("LEAGUE_ID")
+
 except Exception as e:
     print(f"Error reading config.json: {e}")
     LEAGUE_ID = None
@@ -14,74 +19,367 @@ if not LEAGUE_ID:
     print("Error: LEAGUE_ID missing from config.json.")
     exit(1)
 
-BASE_URL = "https://api.sleeper.app/v1/"
+
+API_BASE_URL = "https://api.sleeper.app/v1"
+DATA_BASE_URL = "https://api.sleeper.com"
+
+
+# ============================================================
+# API HELPER
+# ============================================================
 
 def fetch_json(url):
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return json.loads(r.read().decode())
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode())
+
     except Exception as e:
         print(f"Error calling {url}: {e}")
         return None
 
+
+# ============================================================
+# GET CURRENT NFL STATE
+# ============================================================
+
 print("Checking live NFL week context...")
-nfl_state = fetch_json(f"{BASE_URL}state/nfl") or {}
-current_week = nfl_state.get("display_week") or nfl_state.get("week") or 1
-current_year = nfl_state.get("season") or "2026"
 
-print(f"Fetching Week {current_week} league matchup grids...")
-matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{current_week}") or []
+nfl_state = fetch_json(
+    f"{API_BASE_URL}/state/nfl"
+) or {}
 
-# 2. Query Sleeper's master live stats AND projections for the current week
-print("Downloading live player statistics matrix...")
-positions_query = "&position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K&position[]=DEF&position[]=FLEX"
+current_week = (
+    nfl_state.get("display_week")
+    or nfl_state.get("week")
+    or 1
+)
 
-# Live Stats URL (Actual points scored so far)
-stats_url = f"https://sleeper.app{current_year}/{current_week}?season_type=regular{positions_query}"
-# Projections URL (Expected points before/during game)
-proj_url = f"https://sleeper.app{current_year}/{current_week}?season_type=regular&order_by=ppr{positions_query}"
+current_year = (
+    nfl_state.get("season")
+    or "2026"
+)
 
-raw_stats_list = fetch_json(stats_url) or []
-raw_proj_list = fetch_json(proj_url) or []
+print(
+    f"Current NFL season: {current_year}, "
+    f"Week: {current_week}"
+)
 
-# Convert both lists into highly searchable dictionary maps
-stats_dict = {str(p.get("player_id")): p for p in raw_stats_list if p.get("player_id")}
-proj_dict = {str(p.get("player_id")): p for p in raw_proj_list if p.get("player_id")}
-# 3. Sum up live points and dynamic projections for each team's starters
-calculated_projections = {}
 
-for team in matchups:
-    roster_id = team.get("roster_id")
-    starters = team.get("starters") or []
-    
-    total_blended_projection = 0.0
-    
+# ============================================================
+# GET LEAGUE INFORMATION
+# ============================================================
+
+print("Fetching league settings...")
+
+league = fetch_json(
+    f"{API_BASE_URL}/league/{LEAGUE_ID}"
+) or {}
+
+scoring_settings = league.get("scoring_settings", {})
+
+print(
+    f"League scoring settings loaded: "
+    f"{len(scoring_settings)} scoring rules"
+)
+
+
+# ============================================================
+# GET CURRENT WEEK MATCHUPS
+# ============================================================
+
+print(
+    f"Fetching Week {current_week} league matchup grid..."
+)
+
+matchups = fetch_json(
+    f"{API_BASE_URL}/league/{LEAGUE_ID}/matchups/{current_week}"
+) or []
+
+if not isinstance(matchups, list):
+    print("ERROR: Sleeper matchup data was not returned as a list.")
+    exit(1)
+
+print(
+    f"Received {len(matchups)} roster matchup records."
+)
+
+
+# ============================================================
+# GET WEEKLY PLAYER PROJECTIONS
+# ============================================================
+
+print("Downloading Sleeper weekly player projections...")
+
+projection_url = (
+    f"{DATA_BASE_URL}/projections/nfl/"
+    f"regular/{current_year}/{current_week}"
+    f"?season_type=regular"
+)
+
+raw_projection_data = fetch_json(projection_url) or {}
+
+# Sleeper projection endpoint normally returns a list.
+if isinstance(raw_projection_data, list):
+
+    projection_dict = {
+        str(player.get("player_id")): player
+        for player in raw_projection_data
+        if player.get("player_id")
+    }
+
+else:
+
+    # Some versions/clients expose projections as a dictionary.
+    projection_dict = {
+        str(player_id): player_data
+        for player_id, player_data in raw_projection_data.items()
+    }
+
+
+print(
+    f"Loaded projections for "
+    f"{len(projection_dict)} players."
+)
+
+
+# ============================================================
+# HELPER: GET PPR PROJECTION
+# ============================================================
+
+def get_projection(player_id):
+
+    player_id = str(player_id)
+
+    player = projection_dict.get(player_id)
+
+    if not player:
+        return 0.0
+
+    # Sleeper's projection feed provides scoring-format fields.
+    #
+    # We use PPR here as the fallback projection value.
+    # If your league uses custom scoring, we can replace this
+    # with a full custom-scoring calculator.
+
+    value = player.get("pts_ppr")
+
+    if value is None:
+        value = player.get("pts_half_ppr")
+
+    if value is None:
+        value = player.get("pts_std")
+
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+# ============================================================
+# BUILD LIVE TEAM PROJECTIONS
+# ============================================================
+
+live_projection_tracker = {}
+
+for matchup in matchups:
+
+    roster_id = matchup.get("roster_id")
+
+    if roster_id is None:
+        continue
+
+    roster_id = str(roster_id)
+
+    starters = matchup.get("starters") or []
+
+    # --------------------------------------------------------
+    # CURRENT ACTUAL SCORE
+    # --------------------------------------------------------
+    #
+    # Sleeper's matchup "points" is the actual current score
+    # according to the league's scoring settings.
+    #
+    actual_points = matchup.get("points", 0)
+
+    try:
+        actual_points = float(actual_points or 0)
+    except (TypeError, ValueError):
+        actual_points = 0.0
+
+
+    # --------------------------------------------------------
+    # CURRENT PLAYER POINTS
+    # --------------------------------------------------------
+
+    players_points = matchup.get("players_points") or {}
+
+
+    # --------------------------------------------------------
+    # CALCULATE REMAINING STARTERS
+    # --------------------------------------------------------
+
+    remaining_players = []
+
+    current_projected_total = actual_points
+
     for player_id in starters:
-        p_id_str = str(player_id)
-        
-        # Grab live stats and base projections
-        p_stats = stats_dict.get(p_id_str, {}).get("stats", {})
-        p_proj = proj_dict.get(p_id_str, {}).get("stats", {})
-        
-        # Extract actual points scored right now
-        actual_points = p_stats.get("pts_ppr", 0.0)
-        
-        # Check if the player's game has started or finished
-        # If they have played, they will have passing/rushing/receiving snaps recorded
-        has_played = p_stats.get("gp", 0) > 0 or p_stats.get("gs", 0) > 0 or actual_points != 0.0
-        
-        if has_played:
-            # Game is live or finished: Use their actual hard points scored
-            total_blended_projection += actual_points
-        else:
-            # Game hasn't started: Use their full pre-game projection baseline
-            total_blended_projection += p_proj.get("pts_ppr", 0.0)
-            
-    calculated_projections[str(roster_id)] = round(total_blended_projection, 2)
 
-# 4. Save results to your lightweight repository database file
-with open("live_projections.json", "w") as f:
-    json.dump(calculated_projections, f, indent=4)
+        # Sleeper sometimes uses an empty string for an
+        # unfilled starting slot.
+        if not player_id:
+            continue
 
-print(f"🎉 Success! Compiled blended live projections for {len(calculated_projections)} rosters.")
+        player_id = str(player_id)
+
+        # Actual points this player has scored so far.
+        actual_player_points = players_points.get(
+            player_id,
+            0
+        )
+
+        try:
+            actual_player_points = float(
+                actual_player_points or 0
+            )
+        except (TypeError, ValueError):
+            actual_player_points = 0.0
+
+
+        # Projection for the full game.
+        full_game_projection = get_projection(
+            player_id
+        )
+
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        #
+        # We don't want to add the full projection to a player
+        # who has already accumulated points.
+        #
+        # Instead:
+        #
+        # remaining projection =
+        # full projection - points already scored
+        #
+        # Never allow it to go below zero.
+        # ----------------------------------------------------
+
+        remaining_projection = max(
+            0.0,
+            full_game_projection - actual_player_points
+        )
+
+
+        # If this player has already scored points, determine
+        # whether they still have a game remaining.
+        #
+        # Sleeper's public matchup data doesn't always provide
+        # a perfect "game started/game finished" flag, so we
+        # use the projection vs. actual score as the fallback.
+        #
+        # A player with remaining projection is considered
+        # potentially active.
+        if remaining_projection > 0.01:
+
+            remaining_players.append({
+                "player_id": player_id,
+                "actual_points": round(
+                    actual_player_points,
+                    2
+                ),
+                "projection": round(
+                    full_game_projection,
+                    2
+                ),
+                "remaining_projection": round(
+                    remaining_projection,
+                    2
+                )
+            })
+
+
+        # Sleeper's current actual score already includes the
+        # points earned by this player.
+        #
+        # Add only the player's remaining projected points.
+        current_projected_total += remaining_projection
+
+
+    # --------------------------------------------------------
+    # STORE TEAM DATA
+    # --------------------------------------------------------
+
+    live_projection_tracker[roster_id] = {
+
+        "roster_id": int(roster_id),
+
+        "current_score": round(
+            actual_points,
+            2
+        ),
+
+        "projected_score": round(
+            current_projected_total,
+            2
+        ),
+
+        "points_remaining": round(
+            current_projected_total - actual_points,
+            2
+        ),
+
+        "players_remaining": len(
+            remaining_players
+        ),
+
+        "remaining_players": remaining_players
+    }
+
+
+# ============================================================
+# EXPORT
+# ============================================================
+
+with open(
+    "live_projection_tracker.json",
+    "w"
+) as f:
+
+    json.dump(
+        live_projection_tracker,
+        f,
+        indent=4
+    )
+
+
+# ============================================================
+# CONSOLE SUMMARY
+# ============================================================
+
+print()
+print("==========================================")
+print(" LIVE PROJECTION TRACKER")
+print("==========================================")
+
+for roster_id, team in live_projection_tracker.items():
+
+    print(
+        f"Roster {roster_id}: "
+        f"{team['current_score']:.2f} "
+        f"→ "
+        f"{team['projected_score']:.2f} "
+        f"("
+        f"{team['players_remaining']} players remaining"
+        f")"
+    )
+
+print()
+print(
+    "Live projection tracker completed successfully!"
+)
