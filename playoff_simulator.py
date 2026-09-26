@@ -77,6 +77,7 @@ for r_id, stats in team_baselines.items():
     else:
         stats["avg_score"] = 115.0; stats["std_dev"] = 18.0
 
+# 4. Build the REMAINING calendar schedule matrix (FULLY UNPACKED)
 future_schedule = []
 for w in range(current_week + 1, TOTAL_WEEKS + 1):
     matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}") or []
@@ -90,11 +91,13 @@ for w in range(current_week + 1, TOTAL_WEEKS + 1):
     
     for m_id, teams in pairs.items():
         if len(teams) == 2:
-            # FIXED: Unpacks the two roster IDs cleanly into a single tuple pair
+            # FIXED: Explicitly grabs index 0 and index 1 so they are flat integers
             future_schedule.append((teams[0], teams[1]))
+
 print(f"Simulating future schedule calendar {SIMULATIONS} times...")
 playoff_appearances = {r_id: 0 for r_id in team_baselines}
 
+# 5. Execute Monte Carlo core simulation loops
 for _ in range(SIMULATIONS):
     sim_standings = {}
     for r_id, stats in team_baselines.items():
@@ -102,7 +105,7 @@ for _ in range(SIMULATIONS):
             "roster_id": r_id,
             "wins": stats["wins"],
             "losses": stats["losses"],
-            "pf": stats["pf"] # Carry forward historical points accurately for fair tiebreaker sorting
+            "pf": stats["pf"]
         }
     
     for team_a_id, team_b_id in future_schedule:
@@ -128,6 +131,7 @@ for _ in range(SIMULATIONS):
     for rank in range(PLAYOFF_SLOTS):
         playoff_appearances[sorted_teams[rank]["roster_id"]] += 1
 
+# 6. Format and export output data
 output_odds = {}
 total_wins_recorded = sum(stats["wins"] for stats in team_baselines.values())
 
