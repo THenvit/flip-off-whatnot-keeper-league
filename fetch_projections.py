@@ -108,7 +108,6 @@ print(
     f"Received {len(matchups)} roster matchup records."
 )
 
-
 # ============================================================
 # GET WEEKLY PLAYER PROJECTIONS
 # ============================================================
@@ -116,42 +115,42 @@ print(
 print("Downloading Sleeper weekly player projections...")
 
 projection_url = (
-    f"{DATA_BASE_URL}/projections/nfl/"
+    f"https://api.sleeper.com/projections/nfl/"
     f"regular/{current_year}/{current_week}"
     f"?season_type=regular"
 )
 
-raw_projection_data = fetch_json(projection_url) or {}
+raw_projection_data = fetch_json(projection_url)
 
-# Sleeper projection endpoint normally returns a list.
-if isinstance(raw_projection_data, list):
+if raw_projection_data is None:
+    print("WARNING: Could not retrieve projection data.")
+    projection_dict = {}
 
+elif isinstance(raw_projection_data, list):
     projection_dict = {
-        str(player.get("player_id")): player
-        for player in raw_projection_data
-        if player.get("player_id")
+        str(p.get("player_id")): p
+        for p in raw_projection_data
+        if p.get("player_id")
+    }
+
+elif isinstance(raw_projection_data, dict):
+    projection_dict = {
+        str(player_id): data
+        for player_id, data in raw_projection_data.items()
     }
 
 else:
-
-    # Some versions/clients expose projections as a dictionary.
-    projection_dict = {
-        str(player_id): player_data
-        for player_id, player_data in raw_projection_data.items()
-    }
-
+    projection_dict = {}
 
 print(
-    f"Loaded projections for "
-    f"{len(projection_dict)} players."
+    f"Loaded projections for {len(projection_dict)} players."
 )
 
 
-# ============================================================
-# HELPER: GET PPR PROJECTION
-# ============================================================
-
 def get_projection(player_id):
+    """
+    Get Sleeper's PPR projection for a player.
+    """
 
     player_id = str(player_id)
 
@@ -160,24 +159,32 @@ def get_projection(player_id):
     if not player:
         return 0.0
 
-    # Sleeper's projection feed provides scoring-format fields.
-    #
-    # We use PPR here as the fallback projection value.
-    # If your league uses custom scoring, we can replace this
-    # with a full custom-scoring calculator.
+    # Sleeper projection formats
+    for key in [
+        "pts_ppr",
+        "ppr",
+        "points_ppr"
+    ]:
+        value = player.get(key)
 
-    value = player.get("pts_ppr")
+        if value is not None:
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                pass
 
-    if value is None:
-        value = player.get("pts_half_ppr")
+    return 0.0
 
-    if value is None:
-        value = player.get("pts_std")
+print()
+print("Projection diagnostic:")
 
-    try:
-        return float(value or 0)
-    except (TypeError, ValueError):
-        return 0.0
+for player_id, projection in list(projection_dict.items())[:5]:
+    print(
+        player_id,
+        projection
+    )
+
+print()
 
 
 # ============================================================
