@@ -78,10 +78,19 @@ for r_id, stats in team_baselines.items():
     else:
         stats["avg_score"] = 115.0; stats["std_dev"] = 18.0
 
-# 4. Build future schedule (Starts at current_week so Week 3 is accurately simulated!)
+# 4. Build future schedule safely by handling dictionary/error fallbacks
 future_schedule = []
+print(f"Parsing remaining weeks from Week {current_week} to {TOTAL_WEEKS}...")
+
 for w in range(current_week, TOTAL_WEEKS + 1):
-    matchups = fetch_json(f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}") or []
+    url = f"{BASE_URL}league/{LEAGUE_ID}/matchups/{w}"
+    matchups = fetch_json(url)
+    
+    # If Sleeper returns a dictionary error or is empty, we must skip or log it
+    if not matchups or not isinstance(matchups, list):
+        print(f"⚠️ Warning: Week {w} matchups are not generated or locked by Sleeper yet.")
+        continue
+
     pairs = {}
     for m in matchups:
         m_id = m.get("matchup_id")
@@ -92,10 +101,10 @@ for w in range(current_week, TOTAL_WEEKS + 1):
     
     for m_id, teams in pairs.items():
         if len(teams) == 2:
-            # FIXED: Flattens the array tuple using precise indices
             future_schedule.append((teams[0], teams[1]))
-print(f"Simulating future schedule calendar {SIMULATIONS} times...")
-playoff_appearances = {r_id: 0 for r_id in team_baselines}
+
+print(f"📦 Total unplayed games loaded into simulation matrix: {len(future_schedule)}")
+
 
 # 5. Execute Monte Carlo loops with fair, stacked sorting metrics
 for _ in range(SIMULATIONS):
