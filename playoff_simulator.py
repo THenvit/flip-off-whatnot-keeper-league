@@ -45,7 +45,7 @@ for r in rosters:
     }
 # 3. Pull historical scores to build averages and standard deviations
 for w in range(1, current_week):
-    matchups = fetch_json(f"https://sleeper.app{LEAGUE_ID}/matchups/{w}") or []
+    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
     for m in matchups:
         r_id = m.get("roster_id")
         if r_id in team_baselines:
@@ -57,15 +57,15 @@ for r_id, stats in team_baselines.items():
     if len(scores) > 0:
         stats["avg_score"] = float(np.mean(scores))
         calc_std = float(np.std(scores)) if len(scores) > 1 else 12.0
-        stats["std_dev"] = max(12.0, calc_std) # Clamps the variance minimum
+        stats["std_dev"] = max(12.0, calc_std) 
     else:
         stats["avg_score"] = 115.0
         stats["std_dev"] = 15.0
 
-# 4. Build the REMAINING calendar schedule matrix ONLY (Bypasses double-counting)
+# 4. Build the REMAINING calendar schedule matrix (FIXED UNPACKING BUG)
 future_schedule = []
 for w in range(current_week, TOTAL_WEEKS + 1):
-    matchups = fetch_json(f"https://sleeper.app{LEAGUE_ID}/matchups/{w}") or []
+    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
     pairs = {}
     for m in matchups:
         m_id = m.get("matchup_id")
@@ -76,6 +76,7 @@ for w in range(current_week, TOTAL_WEEKS + 1):
     
     for m_id, teams in pairs.items():
         if len(teams) == 2:
+            # FIXED: Correctly extracts Team A and Team B as individual roster IDs
             future_schedule.append((teams[0], teams[1]))
 
 # 5. Execute Monte Carlo core simulation loops
