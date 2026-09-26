@@ -174,18 +174,18 @@ for _ in range(SIMULATIONS):
         team_a = sim_standings[team_a_id]
         team_b = sim_standings[team_b_id]
         
-# League-wide weekly scoring environment
-weekly_environment = random.normalvariate(0, 6)
+        # League-wide weekly scoring environment
+        weekly_environment = random.normalvariate(0, 6)
 
-score_a = random.normalvariate(
-    team_baselines[team_a_id]["avg_score"] + weekly_environment,
-    team_baselines[team_a_id]["std_dev"]
-)
+        score_a = random.normalvariate(
+            team_baselines[team_a_id]["avg_score"] + weekly_environment,
+            team_baselines[team_a_id]["std_dev"]
+        )
 
-score_b = random.normalvariate(
-    team_baselines[team_b_id]["avg_score"] + weekly_environment,
-    team_baselines[team_b_id]["std_dev"]
-)
+        score_b = random.normalvariate(
+            team_baselines[team_b_id]["avg_score"] + weekly_environment,
+            team_baselines[team_b_id]["std_dev"]
+        )
         
         team_a["pf"] += score_a
         team_b["pf"] += score_b
