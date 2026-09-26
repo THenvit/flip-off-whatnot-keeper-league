@@ -71,12 +71,52 @@ for w in range(1, current_week):
 
 for r_id, stats in team_baselines.items():
     scores = stats["weekly_scores"]
-    if len(scores) > 0:
-        stats["avg_score"] = float(np.mean(scores))
-        calc_std = float(np.std(scores)) if len(scores) > 1 else 18.0
-        stats["std_dev"] = max(18.0, calc_std) 
+# League-wide scoring baseline
+all_scores = []
+for stats in team_baselines.values():
+    all_scores.extend(stats["weekly_scores"])
+
+if all_scores:
+    league_avg = float(np.mean(all_scores))
+else:
+    league_avg = 115.0
+
+# How strongly we regress early-season performance toward the league average.
+# Higher = more regression.
+REGRESSION_GAMES = 8
+
+for r_id, stats in team_baselines.items():
+    scores = stats["weekly_scores"]
+    games_played = len(scores)
+
+    if games_played > 0:
+        observed_avg = float(np.mean(scores))
+
+        # Regression toward league average.
+        #
+        # 1 game  -> heavily regressed
+        # 2 games -> still heavily regressed
+        # 8+ games -> mostly trust actual performance
+        weight = games_played / (games_played + REGRESSION_GAMES)
+
+        stats["avg_score"] = (
+            observed_avg * weight +
+            league_avg * (1 - weight)
+        )
+
+        # Use a reasonable fantasy scoring variance.
+        if games_played > 1:
+            calc_std = float(np.std(scores, ddof=1))
+        else:
+            calc_std = 18.0
+
+        # Don't allow small samples to create unrealistically
+        # narrow scoring distributions.
+        stats["std_dev"] = max(18.0, calc_std)
+
     else:
-        stats["avg_score"] = 115.0; stats["std_dev"] = 18.0
+        stats["avg_score"] = league_avg
+        stats["std_dev"] = 18.0
 
 # 4. Build future schedule safely by handling dictionary/error fallbacks
 future_schedule = []
@@ -102,6 +142,14 @@ for w in range(current_week, TOTAL_WEEKS + 1):
     for m_id, teams in pairs.items():
         if len(teams) == 2:
             future_schedule.append((teams[0], teams[1]))
+expected_future_games = (
+    len(team_baselines) * (TOTAL_WEEKS - (current_week - 1)) // 2
+)
+
+print(
+    f"Future games found: {len(future_schedule)} "
+    f"(expected approximately {expected_future_games})"
+)
 
 print(f"Simulating future schedule calendar {SIMULATIONS} times...")
 
@@ -126,8 +174,18 @@ for _ in range(SIMULATIONS):
         team_a = sim_standings[team_a_id]
         team_b = sim_standings[team_b_id]
         
-        score_a = random.normalvariate(team_baselines[team_a_id]["avg_score"], team_baselines[team_a_id]["std_dev"])
-        score_b = random.normalvariate(team_baselines[team_b_id]["avg_score"], team_baselines[team_b_id]["std_dev"])
+# League-wide weekly scoring environment
+weekly_environment = random.normalvariate(0, 6)
+
+score_a = random.normalvariate(
+    team_baselines[team_a_id]["avg_score"] + weekly_environment,
+    team_baselines[team_a_id]["std_dev"]
+)
+
+score_b = random.normalvariate(
+    team_baselines[team_b_id]["avg_score"] + weekly_environment,
+    team_baselines[team_b_id]["std_dev"]
+)
         
         team_a["pf"] += score_a
         team_b["pf"] += score_b
