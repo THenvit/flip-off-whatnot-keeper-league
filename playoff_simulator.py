@@ -43,13 +43,45 @@ for r in rosters:
         "pf": r["settings"].get("fpts", 0) + (r["settings"].get("fpts_decimal", 0) / 100),
         "weekly_scores": []
     }
-# 3. Pull historical scores to build pure records up to the completed week
+# 3. Pull historical scores to build pure current-season records
+# We reset baseline wins/losses to 0 and calculate purely from the active calendar
 for w in range(1, current_week):
-    matchups = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
+    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
+    
+    if w == 1:
+        for r_id in team_baselines:
+            team_baselines[r_id]["wins"] = 0
+            team_baselines[r_id]["losses"] = 0
+            team_baselines[r_id]["ties"] = 0
+
+    pairs = {}
     for m in matchups:
         r_id = m.get("roster_id")
+        m_id = m.get("matchup_id")
         if r_id in team_baselines:
             team_baselines[r_id]["weekly_scores"].append(m.get("points", 0))
+        
+        if m_id is not None:
+            if m_id not in pairs:
+                pairs[m_id] = []
+            pairs[m_id].append(m)
+
+    # Tally pure current-season head-to-head records
+    for m_id, teams in pairs.items():
+        if len(teams) == 2:
+            t1, t2 = teams[0], teams[1]
+            p1, p2 = t1.get("points", 0), t2.get("points", 0)
+            id1, id2 = t1.get("roster_id"), t2.get("roster_id")
+            
+            if p1 > p2:
+                team_baselines[id1]["wins"] += 1
+                team_baselines[id2]["losses"] += 1
+            elif p2 > p1:
+                team_baselines[id2]["wins"] += 1
+                team_baselines[id1]["losses"] += 1
+            else:
+                team_baselines[id1]["ties"] += 1
+                team_baselines[id2]["ties"] += 1
 
 # Assign statistical averages and force a minimum 12-point volatility floor
 for r_id, stats in team_baselines.items():
@@ -62,11 +94,10 @@ for r_id, stats in team_baselines.items():
         stats["avg_score"] = 115.0
         stats["std_dev"] = 15.0
 
-# 4. Build the REMAINING calendar schedule matrix (FIXED TIME GAP OVERLAP)
+# 4. Build the REMAINING calendar schedule matrix
 future_schedule = []
-# Start at current_week + 1 to prevent double-counting active or in-progress match slates
 for w in range(current_week + 1, TOTAL_WEEKS + 1):
-    matchups = fetch_json(f"https://sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
+    matchups = fetch_json(f"https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{w}") or []
     pairs = {}
     for m in matchups:
         m_id = m.get("matchup_id")
