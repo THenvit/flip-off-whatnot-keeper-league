@@ -83,16 +83,19 @@ for w in range(1, current_week):
                 team_baselines[id1]["ties"] += 1
                 team_baselines[id2]["ties"] += 1
 
-# Assign statistical averages and force a minimum 12-point volatility floor
+# Assign statistical averages and force a realistic, high-variance early season floor
 for r_id, stats in team_baselines.items():
     scores = stats["weekly_scores"]
     if len(scores) > 0:
         stats["avg_score"] = float(np.mean(scores))
-        calc_std = float(np.std(scores)) if len(scores) > 1 else 12.0
-        stats["std_dev"] = max(12.0, calc_std) 
+        
+        # EARLY SEASON AMPLIFIER: Clamps the volatility floor to a realistic 18.0 scoring swing
+        # This prevents teams from being modeled as perfectly robotic scorers early in the year
+        calc_std = float(np.std(scores)) if len(scores) > 1 else 18.0
+        stats["std_dev"] = max(18.0, calc_std) 
     else:
         stats["avg_score"] = 115.0
-        stats["std_dev"] = 15.0
+        stats["std_dev"] = 18.0
 
 # 4. Build the REMAINING calendar schedule matrix
 future_schedule = []
